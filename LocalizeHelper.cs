@@ -10,6 +10,5 @@ namespace SimpleBackup
         {
             return _rm.GetString(key);
         }
-
     }
 }

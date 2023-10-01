@@ -130,7 +130,7 @@
     <value>バックアップ処理中</value>
   </data>
   <data name="String_Backup_Source" xml:space="preserve">
-    <value>バックアップ元</value>
+    <value>バックアップ対象</value>
   </data>
   <data name="String_Backup_target_does_not_exist" xml:space="preserve">
     <value>バックアップ対象が存在しないため、処理がキャンセルされました。</value>
@@ -142,7 +142,7 @@
     <value>分</value>
   </data>
   <data name="String_Open_Backup_Source_Folder" xml:space="preserve">
-    <value>バックアップ元を開く</value>
+    <value>バックアップ対象を開く</value>
   </data>
   <data name="String_Open_Save_Location" xml:space="preserve">
     <value>保存場所を開く</value>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleBackup.Properties;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -7,24 +8,27 @@ using System.Linq;
 
 namespace SimpleBackup
 {
-    internal class ViewModel : INotifyPropertyChanged, IDisposable
+    /// <summary>
+    /// MainWindow用ViewModel
+    /// </summary>
+    internal class ViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private bool _scheduleEnabled;
-        public bool ScheduleEnabled
+        //定期バックアップの有効/無効
+        private bool _schedulerEnabled;
+        public bool SchedulerEnabled
         {
-            get { return _scheduleEnabled; }
+            get { return _schedulerEnabled; }
             set
             {
-                _scheduleEnabled = value;
+                _schedulerEnabled = value;
 
-                if (_scheduleEnabled == true)
+                if (_schedulerEnabled == true)
                 {
                     BackupTask = new BackupTask(
                         BackupTargetDir,
@@ -34,94 +38,96 @@ namespace SimpleBackup
                 }
                 else
                 {
-                    BackupTask?.Dispose();
+                    BackupTask?.StopTimer();
                 }
 
-                OnPropertyChanged("ScheduleEnabled");
+                OnPropertyChanged("SchedulerEnabled");
             }
         }
 
-        private string _backupTargetDir;
+        //バックアップ対象のディレクトリ
         public string BackupTargetDir
         {
-            get { return _backupTargetDir; }
+            get { return Settings.Default.Target_Directory; }
             set
             {
-                if (_backupTargetDir != value)
+                if (Settings.Default.Target_Directory != value)
                 {
-                    _backupTargetDir = value;
-                    Debug.WriteLine($"BackupTargetDir : {_backupTargetDir}");
-                    StatusHelper.UpdateStatus($"{LocalizeHelper.GetString("String_Backup_Source")} -> {_backupTargetDir}");
+                    Settings.Default.Target_Directory = value;
+                    Debug.WriteLine($"BackupTargetDir : {Settings.Default.Target_Directory}");
+                    StatusHelper.UpdateStatus($"{LocalizeHelper.GetString("String_Backup_Source")} -> {Settings.Default.Target_Directory}");
                     OnPropertyChanged("BackupTargetDir");
-                    ChangeSequence();
+                    ResetSequence();
                 }
             }
         }
 
-        private string _saveDir;
+        //バックアップ保存場所のディレクトリ
         public string SaveDir
         {
-            get { return _saveDir; }
+            get { return Settings.Default.Save_Directory; }
             set
             {
-                if (_saveDir != value)
+                if (Settings.Default.Save_Directory != value)
                 {
-                    _saveDir = value;
-                    StatusHelper.UpdateStatus($"{LocalizeHelper.GetString("String_Save_Location")} -> {_saveDir}");
-                    Debug.WriteLine($"SaveDir : {_saveDir}");
-                    OnPropertyChanged("saveDir");
-                    ChangeSequence();
+                    Settings.Default.Save_Directory = value;
+                    StatusHelper.UpdateStatus($"{LocalizeHelper.GetString("String_Save_Location")} -> {Settings.Default.Save_Directory}");
+                    Debug.WriteLine($"SaveDir : {Settings.Default.Save_Directory}");
+                    OnPropertyChanged("SaveDir");
+                    ResetSequence();
                 }
             }
         }
 
-        private uint _backupInterval = 10;
+        //定期バックアップのインターバル
         public uint BackupInterval
         {
-            get { return _backupInterval; }
+            get { return Settings.Default.Backup_Interval; }
             set
             {
-                if (_backupInterval != value)
+                if (Settings.Default.Backup_Interval != value)
                 {
-                    _backupInterval = value;
-                    var msg = $"{LocalizeHelper.GetString("String_Backup_Interval")} -> {_backupInterval} {LocalizeHelper.GetString("String_Min")}";
+                    Settings.Default.Backup_Interval = value;
+                    var msg = $"{LocalizeHelper.GetString("String_Backup_Interval")} -> {Settings.Default.Backup_Interval} {LocalizeHelper.GetString("String_Min")}";
                     StatusHelper.UpdateStatus(msg);
-                    Debug.WriteLine($"BackupInterval : {_backupInterval}");
-                    OnPropertyChanged("backupInterval");
+                    Debug.WriteLine($"BackupInterval : {Settings.Default.Backup_Interval}");
+                    OnPropertyChanged("BackupInterval");
                 }
             }
         }
 
-        private uint _maxBackups;
+        //バックアップ数に制限を決めて、それ以上になると古いバックアップを削除する
         public uint MaxBackups
         {
-            get { return _maxBackups; }
+            get { return Settings.Default.Maximum_Number_of_Backups; }
             set
             {
-                if (_maxBackups != value)
+                if (Settings.Default.Maximum_Number_of_Backups != value)
                 {
-                    _maxBackups = value;
-                    var msg = $"{LocalizeHelper.GetString("String_Maximum_Number_of_Backups")} -> {_maxBackups}";
+                    Settings.Default.Maximum_Number_of_Backups = value;
+                    var msg = $"{LocalizeHelper.GetString("String_Maximum_Number_of_Backups")} -> {Settings.Default.Maximum_Number_of_Backups}";
                     StatusHelper.UpdateStatus(msg);
-                    Debug.WriteLine($"maxBackups : {_maxBackups}");
+                    Debug.WriteLine($"maxBackups : {Settings.Default.Maximum_Number_of_Backups}");
                     OnPropertyChanged("maxBackups");
                 }
             }
         }
 
+        //バックアップ実施履歴
         public ObservableCollection<BackupHistoryEntry> BackupHistory { get; set; } = new ObservableCollection<BackupHistoryEntry>();
 
+        //実行中のバックアップ処理
         private BackupTask _backupTask;
         public BackupTask BackupTask
         {
             get { return _backupTask; }
             set
             {
-                _backupTask?.Dispose();
+                _backupTask?.StopTimer();
                 _backupTask = value;
                 if (_backupTask != null)
                 {
-                    _backupTask.BackupCompleted += new BackupTask.BackupCompletedEventHandler(BackupTask_Completed);
+                    _backupTask.BackupCompleted += new BackupCompletedEventHandler(BackupTask_Completed);
                     _backupTask.BackupNow();
                 }
             }
@@ -136,11 +142,7 @@ namespace SimpleBackup
                 if (entry.Index != int.MaxValue)
                     entry.Index++;
 
-                if (
-                    entry.Index >= MaxBackups &&
-                    entry.SourcePath == BackupTargetDir &&
-                    entry.SaveDir == SaveDir
-                )
+                if (entry.Index >= MaxBackups && entry.IsSequence == true)
                 {
                     RemoveBackup(BackupHistory[i]);
                 }
@@ -163,10 +165,9 @@ namespace SimpleBackup
             try
             {
                 var path = Path.Combine(entry.SaveDir, entry.FileName);
-                FileInfo fi = new FileInfo(path);
-                if (fi.Exists == true)
+                if (File.Exists(path) == true)
                 {
-                    fi.Delete();
+                    File.Delete(path);
                 }
                 BackupHistory.Remove(entry);
             }
@@ -174,7 +175,7 @@ namespace SimpleBackup
             { }
         }
 
-        private void ChangeSequence()
+        private void ResetSequence()
         {
             int index = 0;
 
@@ -201,39 +202,6 @@ namespace SimpleBackup
 
         public ViewModel()
         {
-            try
-            {
-                BackupTargetDir = Properties.Settings.Default.Target_Directory;
-                SaveDir = Properties.Settings.Default.Save_Directory;
-                BackupInterval = Properties.Settings.Default.Backup_Interval;
-                MaxBackups = Properties.Settings.Default.Maximum_Number_of_Backups;
-            }
-            catch { }
-
-            /*
-            var cv = CollectionViewSource.GetDefaultView(BackupHistory);
-            cv.SortDescriptions.Clear();
-            cv.SortDescriptions.Add(new SortDescription("IsSequence", ListSortDirection.Descending));
-            cv.SortDescriptions.Add(new SortDescription("Index", ListSortDirection.Ascending));
-            */
-        }
-
-        public void Dispose()
-        {
-            Debug.WriteLine("ViewModel's disposer called");
-            try
-            {
-                Properties.Settings.Default.Target_Directory = BackupTargetDir;
-                Properties.Settings.Default.Save_Directory = SaveDir;
-                Properties.Settings.Default.Backup_Interval = BackupInterval;
-                Properties.Settings.Default.Maximum_Number_of_Backups = MaxBackups;
-
-                Properties.Settings.Default.Save();
-            }
-            catch { }
-
-            _backupTask?.Dispose();
-
         }
     }
 }

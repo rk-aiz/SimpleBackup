@@ -1,25 +1,35 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Windows;
-using System.Windows.Media.Animation;
 
 namespace SimpleBackup
 {
+    /// <summary>
+    /// ステータスバーに表示する情報を扱うクラス
+    /// シングルトン
+    /// インスタンス取得 -> Instance, GetInstance()
+    /// </summary>
     public sealed class StatusHelper : INotifyPropertyChanged
     {
-        private static StatusHelper _singleton = new StatusHelper();
+        private readonly static StatusHelper _current = new StatusHelper();
 
-        public static bool UpdateEnabled;
-
-        public static Storyboard ProgressAnimation;
-
-        private Visibility _progressRingVisibility = Visibility.Collapsed;
-        public Visibility ProgressRingVisibility
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(String propertyName)
         {
-            get { return _progressRingVisibility; }
-            set { _progressRingVisibility = value; OnPropertyChanged("ProgressRingVisibility"); }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        //ステータスバー更新の有効/無効
+        public static bool UpdateEnabled = false;
+
+        //時間のかかる処理が実行中かどうかのフラグ
+        private bool _progressStatus = false;
+        public bool ProgressStatus
+        {
+            get { return _progressStatus; }
+            set { _progressStatus = value; OnPropertyChanged("ProgressStatus"); }
+        }
+
+        //ステータスバーに表示するメッセージ
         private string _message;
         public string Message
         {
@@ -27,26 +37,14 @@ namespace SimpleBackup
             set { _message = value; OnPropertyChanged("Message"); }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged(String propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        private StatusHelper()
-        {
-            UpdateEnabled = false;
-        }
-
         public static StatusHelper GetInstance()
         {
-            return _singleton;
+            return _current;
         }
 
         public static StatusHelper Instance
         {
-            get { return _singleton; }
+            get { return _current; }
         }
 
         public static void UpdateStatus(string text)
@@ -58,26 +56,13 @@ namespace SimpleBackup
             }
         }
 
-        public static void ShowProgressRing()
+        public static void SetProgressStatus(bool status)
         {
             if (UpdateEnabled == true)
             {
                 StatusHelper shi = GetInstance();
-                shi.ProgressRingVisibility = Visibility.Visible;
-                ProgressAnimation?.Begin();
+                shi.ProgressStatus = status;
             }
         }
-
-        public static void HideProgressRing()
-        {
-
-            if (UpdateEnabled == true)
-            {
-                StatusHelper shi = GetInstance();
-                shi.ProgressRingVisibility = Visibility.Collapsed;
-                ProgressAnimation?.Stop();
-            }
-        }
-
     }
 }

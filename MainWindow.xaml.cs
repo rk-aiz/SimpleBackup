@@ -1,12 +1,10 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media.Animation;
-using System.Windows.Threading;
 
 namespace SimpleBackup
 {
@@ -20,12 +18,8 @@ namespace SimpleBackup
         public MainWindow()
         {
             InitializeComponent();
-            _vm = FindResource("bindData") as ViewModel;
 
-            if (FindResource("WaitStoryboard") is Storyboard sb)
-            {
-                StatusHelper.ProgressAnimation = sb;
-            }
+            _vm = FindResource("BindData") as ViewModel;
 
             //HwndSourceが初期化された時に呼び出される
             SourceInitialized += (sender, e) =>
@@ -41,67 +35,27 @@ namespace SimpleBackup
 
             Loaded += (sender, e) =>
             {
+                //ステータスバーの更新を有効化
                 StatusHelper.UpdateEnabled = true;
                 StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Ready"));
             };
-
-            Closing += (sender, e) =>
-            {
-                _vm.Dispose();
-            };
         }
 
-        private async void TargetDir_GotMouseCapture(object sender, MouseEventArgs e)
+        //ディレクトリ選択ダイアロクを表示
+        private async void DirectoryPathTextBox_Selected(object sender, RoutedEventArgs e)
         {
-            if (_vm.ScheduleEnabled == true)
-                return;
+            if (_vm.SchedulerEnabled == true) { return; }
+            if (!(sender is DirectoryPathTextBox tb)) { return; }
 
-            _vm.BackupTargetDir = await ShowCofDialogAsync(
-                _vm.BackupTargetDir,
-                LocalizeHelper.GetString("String_Select_Backup_Folder")
-            );
-        }
+            tb.Text = await CofDialogHelper.ShowDialogAsync(Dispatcher, tb.Text, tb.Description);
 
-        private async void SaveDir_GotMouseCapture(object sender, MouseEventArgs e)
-        {
-            if (_vm.ScheduleEnabled == true)
-                return;
-
-            _vm.SaveDir = await ShowCofDialogAsync(
-                _vm.SaveDir,
-                LocalizeHelper.GetString("String_Select_Save_Location")
-            );
-        }
-
-        private DispatcherOperation<string> ShowCofDialogAsync(string initPath, string title = "Select Folder")
-        {
-            return Dispatcher.InvokeAsync<string>(() => ShowCofDialog(initPath, title));
-        }
-
-        private string ShowCofDialog(string initPath, string title)
-        {
-            //Debug.WriteLine(path);
-            using (var cofDialog = new CommonOpenFileDialog()
-            {
-                Title = title,
-                IsFolderPicker = true,
-                InitialDirectory = initPath
-            })
-            {
-                if (cofDialog.ShowDialog() != CommonFileDialogResult.Ok)
-                {
-                    return initPath;
-                }
-                else
-                {
-                    return cofDialog.FileName;
-                }
-            }
+            var be = BindingOperations.GetBindingExpression(tb, TextBox.TextProperty);
+            if (be?.HasError == false) { be?.UpdateSource(); }
         }
 
         private void BackupNowButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_vm.ScheduleEnabled == true)
+            if (_vm.SchedulerEnabled == true)
             {
                 _vm.BackupTask.BackupNow();
 
@@ -112,85 +66,65 @@ namespace SimpleBackup
             }
         }
 
-
         private void OpenTargetDirButton_Click(object sender, RoutedEventArgs e)
         {
-            System.Diagnostics.Process.Start("explorer.exe", _vm.BackupTargetDir);
+            OpenWithShell(_vm.BackupTargetDir);
         }
 
         private void OpenSaveDirButton_Click(object sender, RoutedEventArgs e)
         {
-            System.Diagnostics.Process.Start("explorer.exe", _vm.SaveDir);
+            OpenWithShell(_vm.SaveDir);
         }
 
+        //何もないところをクリックしたらキーボードフォーカスをクリア
         private void RootGrid_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            Debug.WriteLine("RootGrid_MouseDown");
-            if (sender is Grid gr)
-            {
-                if (gr.IsMouseDirectlyOver)
-                {
-                    IInputElement focusedElement = FocusManager.GetFocusedElement(this);
-                    Debug.WriteLine("Type: " + focusedElement.GetType().ToString());
-                    if (focusedElement is TextBox)
-                    {
-                        //BreakFocus(focusedElement as Control);
-                        System.Windows.Input.Keyboard.ClearFocus();
-                    }
-                }
-            }
+            if (!(sender is Grid gr)) { return; }
+            if (!gr.IsMouseDirectlyOver) { return; }
 
+            if (FocusManager.GetFocusedElement(this) is TextBox)
+            {
+                Keyboard.ClearFocus();
+            }
         }
 
-        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        //TextBoxがキーボードフォーカスを失ったときにValidationErrorがあった場合
+        //バインディングソースの値に戻す
+        private void TextBox_LostKeyboardFocus(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine("TextBox_LostFocus");
-            if (sender is TextBox tb)
+            if (!(sender is TextBox tb)) { return; }
+
+            var be = BindingOperations.GetBindingExpression(tb, TextBox.TextProperty);
+            if (be.HasError)
             {
-                var bindingExpression = BindingOperations.GetBindingExpression(tb, TextBox.TextProperty);
-                if (bindingExpression.HasError)
-                {
-                    bindingExpression.UpdateTarget();
-                }
+                be.UpdateTarget();
             }
         }
 
-        private void ListBoxItem_MouseDoubleClick(object sender, RoutedEventArgs e)
+        //BackupHistoryListBoxをダブルクリックしたら
+        //ListBoxItemのバックアップファイルを開く
+        private void BackupHistoryListBox_MouseDoubleClick(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine("ListBoxItem_MouseDoubleClick");
-            if (e.OriginalSource is DependencyObject dpobj)
+            if (!(e.OriginalSource is DependencyObject dpobj)) { return; }
+            //VisualTreeを上に辿ってListBoxItemを見つける
+            if (!(VisualTreeHelper.FindAncestorByType(dpobj, typeof(ListBoxItem)) is ListBoxItem lbm)) { return; }
+
+            if (!(lbm.DataContext is BackupHistoryEntry entry)) { return; }
+
+            Debug.WriteLine(entry.FileName);
+
+            var path = System.IO.Path.Combine(entry.SaveDir, entry.FileName);
+            if (System.IO.File.Exists(path))
             {
-                ListBoxItem lbm = DependencyObjectSelecter.FindVisualTreeAncestorByType(dpobj, typeof(ListBoxItem)) as ListBoxItem;
-
-                if (lbm?.DataContext is BackupHistoryEntry entry)
-                {
-                    Debug.WriteLine(entry.FileName);
-
-                    var path = System.IO.Path.Combine(entry.SaveDir, entry.FileName);
-                    if (System.IO.File.Exists(path))
-                    {
-                        System.Diagnostics.Process.Start("explorer.exe", path);
-                    }
-                }
+                OpenWithShell(_vm.SaveDir);
             }
-
         }
 
-        /*
-        private void BreakFocus(Control control)
+        private void OpenWithShell(string path)
         {
-            DependencyObject ancestor = control.Parent;
-            while (ancestor != null)
-            {
-                // フォーカスできるか
-                if (ancestor is UIElement element && element.Focusable)
-                {
-                    element.Focus(); // フォーカスを当てる
-                    break;
-                }
-                ancestor = VisualTreeHelper.GetParent(ancestor);
-            }
+            if (String.IsNullOrWhiteSpace(path)) { return; }
+
+            Process.Start(path);
         }
-        */
     }
 }

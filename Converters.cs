@@ -6,14 +6,6 @@ using System.Windows.Data;
 
 namespace SimpleBackup
 {
-    public class CultureAwareBinding : Binding
-    {
-        public CultureAwareBinding()
-        {
-            ConverterCulture = CultureInfo.CurrentUICulture;
-        }
-    }
-
     [ValueConversion(typeof(Int32), typeof(String))]
     public class IndexConverter : IValueConverter
     {
@@ -35,9 +27,7 @@ namespace SimpleBackup
     {
         public EnumDescriptionTypeConverter(Type type) :
             base(type)
-        {
-
-        }
+        { }
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
         {

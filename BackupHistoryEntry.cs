@@ -3,6 +3,9 @@ using System.ComponentModel;
 
 namespace SimpleBackup
 {
+    /// <summary>
+    /// バックアップ実施履歴を表すクラス
+    /// </summary>
     internal class BackupHistoryEntry : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -20,11 +23,7 @@ namespace SimpleBackup
         public string SaveDir
         {
             get { return _saveDir; }
-            set
-            {
-                _saveDir = value;
-                OnPropertyChanged("SaveDir");
-            }
+            set { _saveDir = value; OnPropertyChanged("SaveDir"); }
         }
 
         private string _fileName;

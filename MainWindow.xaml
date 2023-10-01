@@ -3,20 +3,20 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SimpleBackup"
-        xmlns:properties="clr-namespace:SimpleBackup.Properties"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:dat="clr-namespace:System.Windows.Data;assembly=PresentationFramework"
+        xmlns:local="clr-namespace:SimpleBackup"
+        xmlns:properties="clr-namespace:SimpleBackup.Properties"
         mc:Ignorable="d"
         Title="Simple Backup" Height="450" Width="600"
         ResizeMode="NoResize">
     <Window.Resources>
-        <local:ViewModel x:Key="bindData"/>
+        <local:ViewModel x:Key="BindData"/>
         <local:IndexConverter x:Key="IndexConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolVisibilityConverter" />
 
         <Storyboard x:Key="WaitStoryboard" Timeline.DesiredFrameRate="8">
             <DoubleAnimation
-                Storyboard.TargetName="Wait"
                 Storyboard.TargetProperty="(TextBlock.RenderTransform).(RotateTransform.Angle)"
                 From="0"
                 To="360"
@@ -25,11 +25,10 @@
         </Storyboard>
     </Window.Resources>
     
-    
     <Grid
         x:Name="RootGrid"
         Background="#FFFFFF"
-        DataContext="{DynamicResource bindData}"
+        DataContext="{DynamicResource BindData}"
         MouseDown="RootGrid_MouseDown"
         >
 
@@ -45,7 +44,6 @@
                 <CollectionViewSource.SortDescriptions>
                     <scm:SortDescription PropertyName="Index"/>
                 </CollectionViewSource.SortDescriptions>
-
             </CollectionViewSource>
 
             <DataTemplate x:Key="BackupHistoryDataTemplate">
@@ -88,11 +86,15 @@
                 </DataTemplate.Triggers>
             </DataTemplate>
 
-            <Style x:Key="DirectoryPathTextBox" TargetType="{x:Type TextBox}">
+            <Style x:Key="DirectoryPathTextBox" TargetType="{x:Type local:DirectoryPathTextBox}">
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="TextWrapping" Value="NoWrap"/>
                 <Setter Property="IsReadOnly" Value="True"/>
+                <EventSetter Event="Selected" Handler="DirectoryPathTextBox_Selected"/>
                 <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="ToolTip.IsOpen" Value="True"/>
+                    </Trigger>
                     <Trigger Property="Validation.HasError" Value="true">
                         <Setter Property="ToolTipService.ToolTip" Value="{
                                 Binding Path=(Validation.Errors)[0].ErrorContent,
@@ -100,7 +102,7 @@
                         <Setter Property="ToolTip.IsOpen" Value="True"/>
                         <Setter Property="Background" Value="#FF8888"/>
                     </Trigger>
-                    <DataTrigger Binding="{Binding IsChecked, ElementName=ScheduledBackupButton}" Value="true">
+                    <DataTrigger Binding="{Binding SchedulerEnabled}" Value="true">
                         <Setter Property="Foreground" Value="#404040"/>
                         <Setter Property="Background" Value="#D0D0D0"/>
                         <Setter Property="Cursor" Value="Arrow"/>
@@ -133,13 +135,12 @@
                 Margin="5, 0"
                 VerticalAlignment="Center"
                 TextAlignment="Center"/>
-            <TextBox
+            <local:DirectoryPathTextBox
                 Style="{StaticResource DirectoryPathTextBox}"
                 Text="{Binding BackupTargetDir}"
+                Description="{x:Static properties:Resources.String_Select_Backup_Folder}"
                 Width="330"
-                Margin="5, 0"
-                GotMouseCapture="TargetDir_GotMouseCapture"
-                     />
+                Margin="5, 0"/>
         </StackPanel>
         <StackPanel
             Grid.Row="1"
@@ -153,12 +154,12 @@
                 Margin="5, 0"
                 VerticalAlignment="Center"
                 TextAlignment="Center"/>
-            <TextBox
+            <local:DirectoryPathTextBox
                 Style="{StaticResource DirectoryPathTextBox}"
                 Text="{Binding SaveDir, UpdateSourceTrigger=PropertyChanged}"
+                Description="{x:Static properties:Resources.String_Select_Save_Location}"
                 Width="330"
-                Margin="5, 0"
-                GotMouseCapture="SaveDir_GotMouseCapture"/>
+                Margin="5, 0"/>
 
         </StackPanel>
 
@@ -167,7 +168,7 @@
             ItemTemplate="{StaticResource BackupHistoryDataTemplate}"
             ItemsSource="{Binding Source={StaticResource cvsBackupHistory}}"
             Margin="10, 5"
-            ListBoxItem.MouseDoubleClick="ListBoxItem_MouseDoubleClick"
+            ListBoxItem.MouseDoubleClick="BackupHistoryListBox_MouseDoubleClick"
             />
 
         <DockPanel
@@ -210,7 +211,7 @@
                 Content="{x:Static properties:Resources.String_Scheduled_Backup}"
                 Width="120"
                 Margin="5"
-                IsChecked="{Binding ScheduleEnabled}"
+                IsChecked="{Binding SchedulerEnabled}"
                 />
 
             <TextBlock
@@ -232,8 +233,8 @@
                     InputMethod.IsInputMethodEnabled="False"
                     Width="40"
                     Margin="5"
-                    IsReadOnly="{Binding ScheduleEnabled}"
-                    LostFocus="TextBox_LostFocus">
+                    IsReadOnly="{Binding SchedulerEnabled}"
+                    LostKeyboardFocus="TextBox_LostKeyboardFocus">
                     <TextBox.Text>
                         <Binding Path="BackupInterval"
                                              Mode="TwoWay"
@@ -271,8 +272,8 @@
                     InputMethod.IsInputMethodEnabled="False"
                     Width="40"
                     Margin="5"
-                    IsReadOnly="{Binding ScheduleEnabled}"
-                    LostFocus="TextBox_LostFocus">
+                    IsReadOnly="{Binding SchedulerEnabled}"
+                    LostKeyboardFocus="TextBox_LostKeyboardFocus">
                     <TextBox.Text>
                         <Binding Path="MaxBackups"
                                              Mode="TwoWay"
@@ -288,18 +289,19 @@
 
             <Button
                 DockPanel.Dock="Bottom"
-                Content="{x:Static properties:Resources.String_Open_Backup_Source_Folder}"
-                Width="120"
-                Margin="5"
-                Click="OpenTargetDirButton_Click"
-                />
-            <Button
-                DockPanel.Dock="Bottom"
                 Content="{x:Static properties:Resources.String_Open_Save_Location}"
                 Width="120"
                 Margin="5"
                 Click="OpenSaveDirButton_Click"
                 />
+            <Button
+                DockPanel.Dock="Bottom"
+                Content="{x:Static properties:Resources.String_Open_Backup_Source_Folder}"
+                Width="120"
+                Margin="5"
+                Click="OpenTargetDirButton_Click"
+                />
+
 
         </DockPanel>
 
@@ -319,11 +321,26 @@
                 Text="&#xF16A;"
                 RenderTransformOrigin="0.5, 0.5"
                 Margin="5, 0"
-                Visibility="{Binding ProgressRingVisibility, Source={x:Static local:StatusHelper.Instance}}"
-                >
+                Visibility="{Binding ProgressStatus,
+                    Source={x:Static local:StatusHelper.Instance},
+                    Converter={StaticResource BoolVisibilityConverter}}">
                 <TextBlock.RenderTransform>
                     <RotateTransform Angle="0" />
                 </TextBlock.RenderTransform>
+                <TextBlock.Style>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ProgressStatus, Source={x:Static local:StatusHelper.Instance}}" Value="True">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard Storyboard="{StaticResource WaitStoryboard}" Name="bsb"/>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="bsb"/>
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
             </TextBlock>
         </StatusBar>
 

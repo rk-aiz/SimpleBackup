@@ -5,6 +5,9 @@ using System.Windows.Controls;
 
 namespace SimpleBackup
 {
+    /// <summary>
+    /// 正の整数かどうかを検証するValidationRule
+    /// </summary>
     class PositiveIntegerRule : ValidationRule
     {
         private const ValidationMessage MESSAGE = ValidationMessage.PositiveIntegerOnly;
