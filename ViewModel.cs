@@ -13,6 +13,9 @@ namespace SimpleBackup
     /// </summary>
     internal class ViewModel : INotifyPropertyChanged
     {
+        private readonly static ViewModel _instance = new ViewModel();
+        public static ViewModel Instance { get { return _instance; } }
+
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
         {
@@ -30,7 +33,7 @@ namespace SimpleBackup
 
                 if (_schedulerEnabled == true)
                 {
-                    BackupTask = new BackupTask(
+                    BackupScheduler = new BackupScheduler(
                         BackupTargetDir,
                         SaveDir,
                         BackupInterval
@@ -38,7 +41,7 @@ namespace SimpleBackup
                 }
                 else
                 {
-                    BackupTask?.StopTimer();
+                    BackupScheduler?.StopTimer();
                 }
 
                 OnPropertyChanged("SchedulerEnabled");
@@ -114,53 +117,117 @@ namespace SimpleBackup
         }
 
         //バックアップ実施履歴
-        public ObservableCollection<BackupHistoryEntry> BackupHistory { get; set; } = new ObservableCollection<BackupHistoryEntry>();
+        public ObservableCollection<BackupTask> BackupHistory { get; set; } = new ObservableCollection<BackupTask>();
 
         //実行中のバックアップ処理
-        private BackupTask _backupTask;
-        public BackupTask BackupTask
+        private BackupScheduler _backupScheduler;
+        public BackupScheduler BackupScheduler
         {
-            get { return _backupTask; }
+            get { return _backupScheduler; }
             set
             {
-                _backupTask?.StopTimer();
-                _backupTask = value;
-                if (_backupTask != null)
+                _backupScheduler?.StopTimer();
+                _backupScheduler = value;
+                /*if (_backupScheduler != null)
                 {
-                    _backupTask.BackupCompleted += new BackupCompletedEventHandler(BackupTask_Completed);
-                    _backupTask.BackupNow();
-                }
+                    _backupScheduler.BackupCompleted += new BackupCompletedEventHandler(BackupTask_Completed);
+                    _backupScheduler.BackupNow();
+                }*/
             }
         }
 
         private void BackupTask_Completed(object sender, BackupCompletedEventArgs e)
         {
-            for (int i = 0; i < BackupHistory.Count;)
+            if (e.BackupTask.Status == BackupTaskStatus.Failed)
             {
-                var entry = BackupHistory[i];
+                e.BackupTask.Index = -1;
+                return;
+            }
 
-                if (entry.Index != int.MaxValue)
-                    entry.Index++;
+            for (int n = 0; n < BackupHistory.Count;)
+            {
+                var entry = BackupHistory[n];
 
-                if (entry.Index >= MaxBackups && entry.IsSequence == true)
+                if (entry.InSequence == true &&
+                    entry.Status == BackupTaskStatus.Completed)
                 {
-                    RemoveBackup(BackupHistory[i]);
+                    entry.Index++;
+                }
+
+                if (entry.InSequence == true &&
+                    entry.Index >= MaxBackups)
+                {
+                    RemoveBackup(entry);
                 }
                 else
                 {
-                    i++;
+                    n++;
                 }
             }
-            BackupHistory.Add(new BackupHistoryEntry
-            {
-                Index = 0,
-                SourcePath = e.SourcePath,
-                SaveDir = e.SaveDir,
-                FileName = e.BackupName
-            });
         }
 
-        public void RemoveBackup(BackupHistoryEntry entry)
+        public void CreateBackupTask()
+        {
+            CreateBackupTask(BackupTargetDir, SaveDir);
+        }
+
+        public void CreateBackupTask(string sourcePath, string saveDir)
+        {
+            //バックアップ対象が存在しない場合中止
+            if (String.IsNullOrWhiteSpace(sourcePath) || Directory.Exists(sourcePath) == false)
+            {
+                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_target_does_not_exist"));
+                return;
+            }
+
+            //バックアップ保存場所が存在しない場合中止
+            if (String.IsNullOrWhiteSpace(saveDir) || Directory.Exists(saveDir) == false)
+            {
+                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Save_Location_does_not_exist"));
+                return;
+            }
+
+            var saveName = $"{Path.GetFileName(sourcePath)}-{DateTime.Now:yyyyMMdd-hh-mm-ss}.zip";
+            var savePath = System.IO.Path.Combine(saveDir, saveName);
+            //バックアップファイルが既に存在する場合中止
+            if (File.Exists(savePath)) { return; }
+
+            RemoveFailedBackup();
+
+            BackupTask bt = new BackupTask
+            {
+                Index = -1,
+                SourcePath = sourcePath,
+                SaveDir = saveDir,
+                FileName = saveName,
+                InSequence = true
+            };
+            bt.BackupCompleted += new BackupCompletedEventHandler(BackupTask_Completed);
+
+            BackupHistory.Add(bt);
+
+            bt.Backup();
+        }
+
+        public void RemoveFailedBackup()
+        {
+            for (int n = 0; n < BackupHistory.Count;)
+            {
+                var entry = BackupHistory[n];
+
+                if (entry.InSequence == true &&
+                    entry.Status == BackupTaskStatus.Failed)
+                {
+                    RemoveBackup(entry);
+                }
+                else
+                {
+                    n++;
+                }
+            }
+        }
+
+        public void RemoveBackup(BackupTask entry)
         {
             try
             {
@@ -179,29 +246,30 @@ namespace SimpleBackup
         {
             int index = 0;
 
-            foreach (BackupHistoryEntry entry in
-                BackupHistory.OrderByDescending<BackupHistoryEntry, DateTime>(BackupHistoryEntry => BackupHistoryEntry.SaveTime)
+            foreach (BackupTask entry in
+                BackupHistory.OrderByDescending<BackupTask, DateTime>(task => task.SaveTime)
             )
             {
                 if (
-                    entry.SourcePath == BackupTargetDir &&
-                    entry.SaveDir == SaveDir
+                    entry.SourcePath != BackupTargetDir ||
+                    entry.SaveDir != SaveDir
                 )
                 {
-                    entry.IsSequence = true;
+                    entry.InSequence = false;
+                    entry.Index = int.MaxValue;
+                }
+                else if (entry.Status == BackupTaskStatus.Completed)
+                {
+                    entry.InSequence = true;
                     entry.Index = index;
                     index++;
                 }
                 else
                 {
-                    entry.IsSequence = false;
-                    entry.Index = int.MaxValue;
+                    entry.InSequence = true;
+                    entry.Index = -1;
                 }
             }
-        }
-
-        public ViewModel()
-        {
         }
     }
 }

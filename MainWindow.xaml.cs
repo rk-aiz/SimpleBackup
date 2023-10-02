@@ -19,7 +19,7 @@ namespace SimpleBackup
         {
             InitializeComponent();
 
-            _vm = FindResource("BindData") as ViewModel;
+            _vm = ViewModel.Instance;
 
             //HwndSourceが初期化された時に呼び出される
             SourceInitialized += (sender, e) =>
@@ -55,15 +55,16 @@ namespace SimpleBackup
 
         private void BackupNowButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_vm.SchedulerEnabled == true)
+            ViewModel.Instance.CreateBackupTask();
+            /*if (_vm.SchedulerEnabled == true)
             {
-                _vm.BackupTask.BackupNow();
+                _vm.BackupScheduler.BackupNow();
 
             }
             else
             {
-                _vm.BackupTask = new BackupTask(_vm.BackupTargetDir, _vm.SaveDir, scheduled: false);
-            }
+                _vm.BackupScheduler = new BackupScheduler(_vm.BackupTargetDir, _vm.SaveDir, scheduled: false);
+            }*/
         }
 
         private void OpenTargetDirButton_Click(object sender, RoutedEventArgs e)
@@ -107,16 +108,16 @@ namespace SimpleBackup
         {
             if (!(e.OriginalSource is DependencyObject dpobj)) { return; }
             //VisualTreeを上に辿ってListBoxItemを見つける
-            if (!(VisualTreeHelper.FindAncestorByType(dpobj, typeof(ListBoxItem)) is ListBoxItem lbm)) { return; }
+            if (!(VisualTreeHelper.FindAncestorByType(dpobj, typeof(ListBoxItem)) is ListBoxItem lbi)) { return; }
 
-            if (!(lbm.DataContext is BackupHistoryEntry entry)) { return; }
+            if (!(lbi.DataContext is BackupTask bt)) { return; }
 
-            Debug.WriteLine(entry.FileName);
+            Debug.WriteLine(bt.FileName);
 
-            var path = System.IO.Path.Combine(entry.SaveDir, entry.FileName);
+            var path = System.IO.Path.Combine(bt.SaveDir, bt.FileName);
             if (System.IO.File.Exists(path))
             {
-                OpenWithShell(_vm.SaveDir);
+                OpenWithShell(path);
             }
         }
 
@@ -125,6 +126,17 @@ namespace SimpleBackup
             if (String.IsNullOrWhiteSpace(path)) { return; }
 
             Process.Start(path);
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!(e.OriginalSource is DependencyObject dpobj)) { return; }
+            //VisualTreeを上に辿ってListBoxItemを見つける
+            if (!(VisualTreeHelper.FindAncestorByType(dpobj, typeof(ListBoxItem)) is ListBoxItem lbi)) { return; }
+
+            if (!(lbi.DataContext is BackupTask bt)) { return; }
+
+            bt.RequestCancel();
         }
     }
 }

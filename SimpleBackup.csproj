@@ -93,7 +93,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="CofDialogHelper.cs" />
+    <Compile Include="DirectoryMeasure.cs" />
     <Compile Include="DirectoryPathTextBox.cs" />
+    <Compile Include="ProgressChangedEventArgs.cs" />
     <Compile Include="Properties\Resources.ja-JP1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -118,8 +120,8 @@
     </Compile>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="BackupCompletedEventArgs.cs" />
-    <Compile Include="BackupHistoryEntry.cs" />
     <Compile Include="BackupTask.cs" />
+    <Compile Include="BackupScheduler.cs" />
     <Compile Include="Converters.cs" />
     <Compile Include="VisualTreeHelper.cs" />
     <Compile Include="LocalizedDescriptionAttribute.cs" />

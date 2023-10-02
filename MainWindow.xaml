@@ -11,7 +11,7 @@
         Title="Simple Backup" Height="450" Width="600"
         ResizeMode="NoResize">
     <Window.Resources>
-        <local:ViewModel x:Key="BindData"/>
+        
         <local:IndexConverter x:Key="IndexConverter"/>
         <BooleanToVisibilityConverter x:Key="BoolVisibilityConverter" />
 
@@ -23,12 +23,47 @@
                 Duration="0:0:1"
                 RepeatBehavior="Forever"/>
         </Storyboard>
+
+        <Geometry x:Key="ErrorPathIcon">
+            M 50,-10 A 60,60 180 1 1 50,110 A 60,60 180 1 1 50,-10 Z
+            M 25,15 L 50,41 L 75,15 L 85,25 L 59,50
+            L 85,75 L 75,85 L 50,59 L 25,85 L 15,75
+            L 41,50 L 15,25 Z
+        </Geometry>
+
+        <Geometry x:Key="CompletePathIcon">
+            M 50,-10 A 60,60 180 1 1 50,110 A 60,60 180 1 1 50,-10 Z
+            M 15,49 L 40,68  L 83,31 L 95,43 L 40,88
+            L 5,60 Z
+        </Geometry>
+
+        <Style x:Key="ProgressBarStyle" TargetType="{x:Type ProgressBar}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#3090F0"/>
+            <Setter Property="Height" Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ProgressBar}">
+                        <Grid x:Name="TemplateRoot">
+                            <Border Background="{TemplateBinding Background}"/>
+                            <Rectangle x:Name="PART_Track"/>
+                            <Grid x:Name="PART_Indicator"
+                                ClipToBounds="true"
+                                HorizontalAlignment="Left">
+                                <Rectangle x:Name="Indicator" Fill="{TemplateBinding Foreground}"/>
+                            </Grid>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
     
     <Grid
         x:Name="RootGrid"
         Background="#FFFFFF"
-        DataContext="{DynamicResource BindData}"
+        DataContext="{x:Static local:ViewModel.Instance}"
         MouseDown="RootGrid_MouseDown"
         >
 
@@ -38,50 +73,129 @@
                 x:Key="cvsBackupHistory"
                 Source="{Binding BackupHistory}"
                 IsLiveSortingRequested="True">
-                <CollectionViewSource.GroupDescriptions>
-                    <dat:PropertyGroupDescription PropertyName="IsSequence"/>
-                </CollectionViewSource.GroupDescriptions>
                 <CollectionViewSource.SortDescriptions>
-                    <scm:SortDescription PropertyName="Index"/>
+                    <scm:SortDescription PropertyName="Index" Direction="Ascending"/>
                 </CollectionViewSource.SortDescriptions>
             </CollectionViewSource>
 
             <DataTemplate x:Key="BackupHistoryDataTemplate">
-                <Grid x:Name="ItemGrid">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="10" />
-                        <RowDefinition Height="25" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="30" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.Resources>
-                        <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsSequence}" Value="False">
-                                    <Setter
-                                        Property="TextBlock.Foreground"
-                                        Value="#909090" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Grid.Resources>
-                    <TextBlock x:Name="index"
-                        Grid.RowSpan="2" Grid.Column="0" FontSize="18"
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="10" />
+                            <RowDefinition Height="25" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.Resources>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding InSequence}" Value="False">
+                                        <Setter
+                                    Property="TextBlock.Foreground"
+                                    Value="#909090" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Resources>
+                        <TextBlock x:Name="index"
+                        Grid.RowSpan="2" Grid.Column="0"
+                        FontSize="18"
                         Text="{Binding Index, Converter={StaticResource IndexConverter}}"/>
-                    <TextBlock Grid.Row="0" Grid.Column="1" FontSize="12"
-                        Text="{Binding SaveTime, StringFormat={}{0:yyyy/MM/dd HH:mm:ss}}"/>
-                    <TextBlock Grid.Row="1" Grid.Column="1" FontSize="16"
-                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"
-                        Text="{Binding FileName}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock x:Name="saveTime"
+                            Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="1"
+                            FontSize="12"
+                            Visibility="Hidden"
+                            Text="{Binding SaveTime, StringFormat={}{0:yyyy/MM/dd HH:mm:ss}}"/>
+                        <TextBlock
+                            Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1"
+                            FontSize="16"
+                            HorizontalAlignment="Stretch"
+                            ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"
+                            Text="{Binding FileName}" TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                    <ProgressBar x:Name="progress"
+                        Value="{Binding Progress}"
+                        Style="{StaticResource ProgressBarStyle}"
+                        VerticalAlignment="Top"
+                        Margin="2"
+                        Visibility="Collapsed"/>
+                    <Path x:Name="statusIcon"
+                        HorizontalAlignment="Right"
+                        Width="12" Height="12"
+                        Margin="10, 0"
+                        Stretch="Fill"
+                        Visibility="Collapsed" Data="" />
+                    <Button Name="cancelButton" Visibility="Collapsed" Click="CancelButton_Click"
+                        HorizontalAlignment="Right" Margin="2"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center">
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type Button}">
+                                            <Border Name="Border" Background="#80FFFFFF"
+                                                Width="75" Height="24" CornerRadius="12">
+                                                <TextBlock Name="Label"
+                                                    Width="75" Height="16"
+                                                    FontSize="14"
+                                                    TextAlignment="Center"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontWeight="UltraBold"
+                                                    Foreground="#FF3010"
+                                                    Text="Cancel" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Border" Property="Background" Value="#D5FFFFFF" />
+                                                </Trigger>
+                                                <MultiTrigger>
+                                                    <MultiTrigger.Conditions>
+                                                        <Condition Property="IsMouseOver" Value="True" />
+                                                        <Condition Property="IsMouseCaptured" Value="True" />
+                                                    </MultiTrigger.Conditions>
+                                                    <Setter TargetName="Label" Property="Foreground" Value="#B03000" />
+                                                </MultiTrigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                 </Grid>
                 <DataTemplate.Triggers>
-                    <DataTrigger Binding="{Binding IsSequence}" Value="False">
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}"
+                                Value="True"/>
+                            <Condition Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Processing}"/>
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="cancelButton" Property="Visibility" Value="Visible" />
+                    </MultiDataTrigger>
+                    <DataTrigger Binding="{Binding InSequence}" Value="False">
                         <Setter TargetName="index"
                             Property="TextBlock.Visibility"
                             Value="Hidden" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Processing}">
+                        <Setter TargetName="progress" Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Failed}">
+                        <Setter TargetName="statusIcon" Property="Visibility" Value="Visible" />
+                        <Setter TargetName="statusIcon" Property="Fill" Value="Red" />
+                        <Setter TargetName="statusIcon" Property="Data" Value="{StaticResource ErrorPathIcon}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Completed}">
+                        <Setter TargetName="statusIcon" Property="Visibility" Value="Visible" />
+                        <Setter TargetName="statusIcon" Property="Fill" Value="#30E050" />
+                        <Setter TargetName="statusIcon" Property="Data" Value="{StaticResource CompletePathIcon}" />
+                        <Setter TargetName="saveTime" Property="Visibility" Value="Visible" />
                     </DataTrigger>
                 </DataTemplate.Triggers>
             </DataTemplate>
@@ -163,13 +277,11 @@
 
         </StackPanel>
 
-        <ListBox
-            Grid.Row="2"
-            ItemTemplate="{StaticResource BackupHistoryDataTemplate}"
-            ItemsSource="{Binding Source={StaticResource cvsBackupHistory}}"
-            Margin="10, 5"
-            ListBoxItem.MouseDoubleClick="BackupHistoryListBox_MouseDoubleClick"
-            />
+        <ListBox Grid.Row="2" Margin="10, 5"
+                 ItemTemplate="{StaticResource BackupHistoryDataTemplate}"
+                 ItemsSource="{Binding Source={StaticResource cvsBackupHistory}}"
+                 ListBoxItem.MouseDoubleClick="BackupHistoryListBox_MouseDoubleClick"
+                 HorizontalContentAlignment="Stretch"/>
 
         <DockPanel
             Grid.Row="0"
@@ -237,9 +349,8 @@
                     LostKeyboardFocus="TextBox_LostKeyboardFocus">
                     <TextBox.Text>
                         <Binding Path="BackupInterval"
-                                             Mode="TwoWay"
-                                             UpdateSourceTrigger="PropertyChanged"
-                                             >
+                                 Mode="TwoWay"
+                                 UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:PositiveIntegerRule/>
                             </Binding.ValidationRules>
@@ -299,9 +410,7 @@
                 Content="{x:Static properties:Resources.String_Open_Backup_Source_Folder}"
                 Width="120"
                 Margin="5"
-                Click="OpenTargetDirButton_Click"
-                />
-
+                Click="OpenTargetDirButton_Click"/>
 
         </DockPanel>
 

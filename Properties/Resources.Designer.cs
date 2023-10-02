@@ -88,6 +88,15 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Backup process failed. に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Backup_process_failed {
+            get {
+                return ResourceManager.GetString("String_Backup_process_failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Backup process in progress. に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Backup_process_in_progress {
@@ -111,6 +120,24 @@ namespace SimpleBackup.Properties {
         public static string String_Backup_target_does_not_exist {
             get {
                 return ResourceManager.GetString("String_Backup_target_does_not_exist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Completed に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Completed {
+            get {
+                return ResourceManager.GetString("String_Completed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Failed に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Failed {
+            get {
+                return ResourceManager.GetString("String_Failed", resourceCulture);
             }
         }
         
@@ -156,6 +183,15 @@ namespace SimpleBackup.Properties {
         public static string String_Positive_Integer_Only {
             get {
                 return ResourceManager.GetString("String_Positive_Integer_Only", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Processing に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Processing {
+            get {
+                return ResourceManager.GetString("String_Processing", resourceCulture);
             }
         }
         

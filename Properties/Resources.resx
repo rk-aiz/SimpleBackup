@@ -126,6 +126,9 @@
   <data name="String_Backup_process_completed" xml:space="preserve">
     <value>Backup process completed.</value>
   </data>
+  <data name="String_Backup_process_failed" xml:space="preserve">
+    <value>Backup process failed.</value>
+  </data>
   <data name="String_Backup_process_in_progress" xml:space="preserve">
     <value>Backup process in progress.</value>
   </data>
@@ -134,6 +137,12 @@
   </data>
   <data name="String_Backup_target_does_not_exist" xml:space="preserve">
     <value>The process was canceled because the backup target does not exist.</value>
+  </data>
+  <data name="String_Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="String_Failed" xml:space="preserve">
+    <value>Failed</value>
   </data>
   <data name="String_Maximum_Number_of_Backups" xml:space="preserve">
     <value>Maximum Number of Backups</value>
@@ -149,6 +158,9 @@
   </data>
   <data name="String_Positive_Integer_Only" xml:space="preserve">
     <value>Positive Integer Only</value>
+  </data>
+  <data name="String_Processing" xml:space="preserve">
+    <value>Processing</value>
   </data>
   <data name="String_Ready" xml:space="preserve">
     <value>Ready</value>

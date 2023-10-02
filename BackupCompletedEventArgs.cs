@@ -2,19 +2,15 @@
 
 namespace SimpleBackup
 {
-    public delegate void BackupCompletedEventHandler(object sender, BackupCompletedEventArgs e);
+    internal delegate void BackupCompletedEventHandler(object sender, BackupCompletedEventArgs e);
 
-    public class BackupCompletedEventArgs : EventArgs
+    internal class BackupCompletedEventArgs : EventArgs
     {
-        public string SourcePath { get; private set; }
-        public string SaveDir { get; private set; }
-        public string BackupName { get; private set; }
+        public BackupTask BackupTask { get; set; }
 
-        public BackupCompletedEventArgs(string _sourcePath, string _saveDir, string _backupPath)
+        public BackupCompletedEventArgs(BackupTask bt)
         {
-            SourcePath = _sourcePath;
-            SaveDir = _saveDir;
-            BackupName = _backupPath;
+            BackupTask = bt;
         }
     }
 }

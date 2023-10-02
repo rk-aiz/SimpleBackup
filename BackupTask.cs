@@ -1,140 +1,173 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 
 namespace SimpleBackup
 {
-    /// <summary>
-    /// 定期的にバックアップを行うクラス
-    /// </summary>
-    internal class BackupTask
+    [TypeConverter(typeof(EnumDescriptionTypeConverter))]
+    internal enum BackupTaskStatus
     {
-        //バックアップ対象フォルダ
-        private readonly string _target;
+        [LocalizedDescription("String_Processing", typeof(Properties.Resources))]
+        Processing,
+        [LocalizedDescription("String_Completed", typeof(Properties.Resources))]
+        Completed,
+        [LocalizedDescription("String_Failed", typeof(Properties.Resources))]
+        Failed,
+    }
 
-        //バックアップ保存先フォルダ
-        private readonly string _save;
+    /// <summary>
+    /// 1回分のバックアップ処理を扱うクラス
+    /// </summary>
+    internal class BackupTask : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        //定期バックアップのインターバル
-        private readonly uint _timerInterval = 10;
+        private bool _InSequence = true;
+        public bool InSequence
+        {
+            get { return _InSequence; }
+            set { _InSequence = value; OnPropertyChanged("InSequence"); }
+        }
 
-        //定期バックアップ用タイマー
-        private DispatcherTimer _timer;
+        public string SourcePath { get; set; }
+
+        private string _saveDir;
+        public string SaveDir
+        {
+            get { return _saveDir; }
+            set { _saveDir = value; OnPropertyChanged("SaveDir"); }
+        }
+
+        private string _fileName;
+        public string FileName
+        {
+            get { return _fileName; }
+            set { _fileName = value; OnPropertyChanged("FileName"); }
+        }
+
+        private DateTime _saveTime;
+        public DateTime SaveTime
+        {
+            get { return _saveTime; }
+            set { _saveTime = value; OnPropertyChanged("SaveTime"); }
+        }
+
+        private int _index;
+        public int Index
+        {
+            get { return _index; }
+            set { _index = value; OnPropertyChanged("Index"); }
+        }
+
+        private BackupTaskStatus _status;
+        public BackupTaskStatus Status
+        {
+            get { return _status; }
+            set { _status = value; OnPropertyChanged("Status"); }
+        }
+
+        private int _progress;
+        public int Progress
+        {
+            get { return _progress; }
+            set
+            {
+                if (_progress != value)
+                {
+                    _progress = value;
+                    OnPropertyChanged("Progress");
+                }
+            }
+        }
 
         //バックアップ処理中のロック
-        private readonly Object _lockObject = new Object();
         private CancellationTokenSource cTokenSource;
 
         //バックアップ終了時のイベント
         public event BackupCompletedEventHandler BackupCompleted;
 
-        public BackupTask(string target, string save, uint timerInterval = 10, bool scheduled = true)
+        public BackupTask()
         {
-            _target = target;
-            _save = save;
-            _timerInterval = timerInterval;
-            if (scheduled)
+            _saveTime = DateTime.Now;
+            _status = BackupTaskStatus.Processing;
+        }
+
+        private Task CreateZipAsync(DirectoryInfo src, string path, CancellationToken token)
+        {
+            return Task.Run(() =>
             {
-                SetupTimer();
-            }
+                try
+                {
+                    var zah = new ZipArchiveHelper(src, path, token);
+                    zah.ProgressChanged += (s, e) =>
+                    {
+                        Progress = e.Progress;
+                    };
+                    zah.CreateZipArchive();
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            });
         }
 
-        public void BackupNow()
-        {
-            BackupMethod(this, EventArgs.Empty);
-        }
-
-        private async void BackupMethod(object sender, EventArgs e)
+        public async void Backup()
         {
             //バックアップ処理が既に実行中の場合中止
             if (cTokenSource != null) { return; }
 
-            //バックアップ対象が存在しない場合中止
-            if (String.IsNullOrWhiteSpace(_target) || Directory.Exists(_target) == false)
-            {
-                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_target_does_not_exist"));
-                return;
-            }
-
-            //バックアップ保存場所が存在しない場合中止
-            DirectoryInfo diSave = new DirectoryInfo(_save);
-            if (String.IsNullOrWhiteSpace(_save) || Directory.Exists(_save) == false)
-            {
-                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Save_Location_does_not_exist"));
-                return;
-            }
-
-            var saveName = $"{Path.GetFileName(_target)}-{DateTime.Now:yyyyMMdd-hh-mm-ss}.zip";
-            var savePath = Path.Combine(_save, saveName);
-
-            //バックアップファイルが既に存在する場合中止
-            if (File.Exists(savePath)) { return; }
-
-            DirectoryInfo diTarget = new DirectoryInfo(_target);
-            await CreateZipAsync(diTarget, savePath);
-
-            if (System.IO.File.Exists(savePath) == true)
-            {
-                OnBackupCompleted(_target, _save, saveName);
-
-                var msg = $"{LocalizeHelper.GetString("String_Backup_process_completed")} -> {savePath}";
-                StatusHelper.UpdateStatus(msg);
-                Debug.WriteLine($"Backup -> {savePath}");
-            }
-
-        }
-
-        private void OnBackupCompleted(string src, string dir, string name)
-        {
-            BackupCompleted?.Invoke(this, new BackupCompletedEventArgs(src, dir, name));
-        }
-
-        private void SetupTimer()
-        {
-            _timer = new DispatcherTimer(DispatcherPriority.Send)
-            {
-                Interval = TimeSpan.FromMinutes(_timerInterval)
-            };
-            _timer.Tick += new EventHandler(BackupMethod);
-            _timer.Start();
-        }
-
-        public void StopTimer()
-        {
-            _timer?.Stop();
-        }
-
-        private Task CreateZipAsync(DirectoryInfo src, string path)
-        {
+            //ステータスバー更新
             StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_process_in_progress"));
             StatusHelper.SetProgressStatus(true);
 
-            cTokenSource = new CancellationTokenSource();
-            return Task.Run(() => CreateZip(src, path)).ContinueWith(t =>
+            //Destination Path
+            var savePath = System.IO.Path.Combine(SaveDir, FileName);
+
+            using (cTokenSource = new CancellationTokenSource())
             {
-                cTokenSource?.Dispose();
-                cTokenSource = null;
-                StatusHelper.SetProgressStatus(false);
-            });
+                DirectoryInfo diTarget = new DirectoryInfo(SourcePath);
+                try
+                {
+                    await CreateZipAsync(diTarget, savePath, cTokenSource.Token);
+
+                    Status = BackupTaskStatus.Completed;
+                    var msg = $"{LocalizeHelper.GetString("String_Backup_process_completed")} -> {savePath}";
+                    StatusHelper.UpdateStatus(msg);
+                }
+                catch (Exception ex)
+                {
+                    if (File.Exists(savePath)) { File.Delete(savePath); }
+                    Status = BackupTaskStatus.Failed;
+                    var msg = $"{LocalizeHelper.GetString("String_Backup_process_failed")} : {ex.Message}";
+                    StatusHelper.UpdateStatus(msg);
+                }
+                finally
+                {
+                    StatusHelper.SetProgressStatus(false);
+                    OnBackupCompleted();
+                    Debug.WriteLine($"Backup -> {savePath}");
+                }
+            }
+            cTokenSource = null;
         }
 
-        private void CreateZip(DirectoryInfo src, string path)
+        private void OnBackupCompleted()
         {
-            lock (_lockObject)
-            {
-                src.CreateZipArchive(path);
-            }
+            BackupCompleted?.Invoke(this, new BackupCompletedEventArgs(this));
         }
 
-        ~BackupTask()
+        protected void OnPropertyChanged(string propertyName)
         {
-            lock (_lockObject)
-            {
-                _timer?.Stop();
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void RequestCancel()
+        {
+            cTokenSource?.Cancel();
         }
     }
 }
