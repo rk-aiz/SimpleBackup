@@ -4,7 +4,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 
-namespace SimpleBackup
+namespace SimpleBackup.Models
 {
     /// <summary>
     /// ディレクトリ配下のファイルとディレクトリを順次アーカイブに追加します。

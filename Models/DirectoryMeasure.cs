@@ -2,8 +2,11 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace SimpleBackup
+namespace SimpleBackup.Models
 {
+    /// <summary>
+    /// ディレクトリのサイズ・ファイル数を累算する
+    /// </summary>
     internal class DirectoryMeasure
     {
         private long totalSize = 0;

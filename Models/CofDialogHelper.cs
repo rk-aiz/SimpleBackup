@@ -1,7 +1,7 @@
 ﻿using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Windows.Threading;
 
-namespace SimpleBackup
+namespace SimpleBackup.Models
 {
     /// <summary>
     /// CommonOpenFileDialog用ヘルパークラス

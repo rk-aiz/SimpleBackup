@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
+using SimpleBackup.Models;
 
 namespace SimpleBackup
 {
@@ -56,15 +57,6 @@ namespace SimpleBackup
         private void BackupNowButton_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.Instance.CreateBackupTask();
-            /*if (_vm.SchedulerEnabled == true)
-            {
-                _vm.BackupScheduler.BackupNow();
-
-            }
-            else
-            {
-                _vm.BackupScheduler = new BackupScheduler(_vm.BackupTargetDir, _vm.SaveDir, scheduled: false);
-            }*/
         }
 
         private void OpenTargetDirButton_Click(object sender, RoutedEventArgs e)

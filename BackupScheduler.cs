@@ -31,11 +31,6 @@ namespace SimpleBackup
             }
         }
 
-        /*public void BackupNow()
-        {
-            BackupMethod(this, EventArgs.Empty);
-        }*/
-
         private void SetupTimer()
         {
             _timer = new DispatcherTimer(DispatcherPriority.Send)
@@ -51,14 +46,9 @@ namespace SimpleBackup
             _timer?.Stop();
         }
 
-        /*
-
         ~BackupScheduler()
         {
-            lock (_lockObject)
-            {
-                _timer?.Stop();
-            }
-        }*/
+            _timer?.Stop();
+        }
     }
 }

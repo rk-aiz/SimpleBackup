@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using SimpleBackup.Models;
 
 namespace SimpleBackup
 {
@@ -166,6 +167,11 @@ namespace SimpleBackup
         }
 
         public void RequestCancel()
+        {
+            cTokenSource?.Cancel();
+        }
+
+        ~BackupTask()
         {
             cTokenSource?.Cancel();
         }

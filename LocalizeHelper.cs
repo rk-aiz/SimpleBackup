@@ -1,4 +1,5 @@
-﻿using System.Resources;
+﻿using System.ComponentModel;
+using System.Resources;
 
 namespace SimpleBackup
 {
@@ -10,5 +11,17 @@ namespace SimpleBackup
         {
             return _rm.GetString(key);
         }
+    }
+
+    [TypeConverter(typeof(EnumDescriptionTypeConverter))]
+    public enum ToggleStateMessage
+    {
+        [LocalizedDescription("String_Off",
+        typeof(SimpleBackup.Properties.Resources))]
+        Off,
+
+        [LocalizedDescription("String_On",
+        typeof(SimpleBackup.Properties.Resources))]
+        On,
     }
 }

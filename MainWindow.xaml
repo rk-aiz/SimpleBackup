@@ -4,60 +4,63 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-        xmlns:dat="clr-namespace:System.Windows.Data;assembly=PresentationFramework"
         xmlns:local="clr-namespace:SimpleBackup"
         xmlns:properties="clr-namespace:SimpleBackup.Properties"
         mc:Ignorable="d"
         Title="Simple Backup" Height="450" Width="600"
         ResizeMode="NoResize">
     <Window.Resources>
-        
-        <local:IndexConverter x:Key="IndexConverter"/>
-        <BooleanToVisibilityConverter x:Key="BoolVisibilityConverter" />
+        <ResourceDictionary>
 
-        <Storyboard x:Key="WaitStoryboard" Timeline.DesiredFrameRate="8">
-            <DoubleAnimation
-                Storyboard.TargetProperty="(TextBlock.RenderTransform).(RotateTransform.Angle)"
-                From="0"
-                To="360"
-                Duration="0:0:1"
-                RepeatBehavior="Forever"/>
-        </Storyboard>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="SliderButtonDictionary.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
 
-        <Geometry x:Key="ErrorPathIcon">
-            M 50,-10 A 60,60 180 1 1 50,110 A 60,60 180 1 1 50,-10 Z
-            M 25,15 L 50,41 L 75,15 L 85,25 L 59,50
-            L 85,75 L 75,85 L 50,59 L 25,85 L 15,75
-            L 41,50 L 15,25 Z
-        </Geometry>
+            <local:IndexConverter x:Key="IndexConverter"/>
+            <BooleanToVisibilityConverter x:Key="BoolVisibilityConverter" />
 
-        <Geometry x:Key="CompletePathIcon">
-            M 50,-10 A 60,60 180 1 1 50,110 A 60,60 180 1 1 50,-10 Z
-            M 15,49 L 40,68  L 83,31 L 95,43 L 40,88
-            L 5,60 Z
-        </Geometry>
+            <Storyboard x:Key="WaitStoryboard" Timeline.DesiredFrameRate="8">
+                <DoubleAnimation
+                    Storyboard.TargetProperty="(TextBlock.RenderTransform).(RotateTransform.Angle)"
+                    From="0"
+                    To="360"
+                    Duration="0:0:1"
+                    RepeatBehavior="Forever"/>
+            </Storyboard>
 
-        <Style x:Key="ProgressBarStyle" TargetType="{x:Type ProgressBar}">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#3090F0"/>
-            <Setter Property="Height" Value="5"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ProgressBar}">
-                        <Grid x:Name="TemplateRoot">
-                            <Border Background="{TemplateBinding Background}"/>
-                            <Rectangle x:Name="PART_Track"/>
-                            <Grid x:Name="PART_Indicator"
-                                ClipToBounds="true"
-                                HorizontalAlignment="Left">
-                                <Rectangle x:Name="Indicator" Fill="{TemplateBinding Foreground}"/>
+            <Geometry x:Key="ErrorPathIcon">
+                M 50,-10 A 60,60 180 1 1 50,110 A 60,60 180 1 1 50,-10 Z
+                M 25,15 L 50,41 L 75,15 L 85,25 L 59,50
+                L 85,75 L 75,85 L 50,59 L 25,85 L 15,75
+                L 41,50 L 15,25 Z
+            </Geometry>
+
+            <Geometry x:Key="CompletePathIcon">
+                M 50,-10 A 60,60 180 1 1 50,110 A 60,60 180 1 1 50,-10 Z
+                M 15,49 L 40,68  L 83,31 L 95,43 L 40,88
+                L 5,60 Z
+            </Geometry>
+
+            <Style x:Key="ProgressBarStyle" TargetType="{x:Type ProgressBar}">
+                <Setter Property="Foreground" Value="#FF1C61F3"/>
+                <Setter Property="Height" Value="5"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ProgressBar}">
+                            <Grid x:Name="TemplateRoot">
+                                <Rectangle x:Name="PART_Track"/>
+                                <Grid x:Name="PART_Indicator"
+                                    ClipToBounds="true" Height="5"
+                                    HorizontalAlignment="Left">
+                                    <Rectangle x:Name="Indicator" Fill="{TemplateBinding Foreground}"/>
+                                </Grid>
                             </Grid>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+        
     </Window.Resources>
     
     <Grid
@@ -193,7 +196,7 @@
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Completed}">
                         <Setter TargetName="statusIcon" Property="Visibility" Value="Visible" />
-                        <Setter TargetName="statusIcon" Property="Fill" Value="#30E050" />
+                        <Setter TargetName="statusIcon" Property="Fill" Value="#54e0bd" />
                         <Setter TargetName="statusIcon" Property="Data" Value="{StaticResource CompletePathIcon}" />
                         <Setter TargetName="saveTime" Property="Visibility" Value="Visible" />
                     </DataTrigger>
@@ -308,7 +311,7 @@
                     </Style.Triggers>
                 </Style>
             </DockPanel.Resources>
-            
+
             <Button
                 DockPanel.Dock="Top"
                 Content="{x:Static properties:Resources.String_Backup_Now}"
@@ -317,86 +320,94 @@
                 Click="BackupNowButton_Click"
                 />
 
-            <ToggleButton
-                x:Name="ScheduledBackupButton"
+            <GroupBox
                 DockPanel.Dock="Top"
-                Content="{x:Static properties:Resources.String_Scheduled_Backup}"
-                Width="120"
                 Margin="5"
-                IsChecked="{Binding SchedulerEnabled}"
-                />
+                Header="{x:Static properties:Resources.String_Scheduled_Backup}">
+                <StackPanel>
+                    <ToggleButton
+                        x:Name="ScheduledBackupButton"
+                        DockPanel.Dock="Top"
+                        Template="{StaticResource ToggleSlider}"
+                        Content="{x:Static properties:Resources.String_Scheduled_Backup}"
+                        Width="120"
+                        Margin="5"
+                        IsChecked="{Binding SchedulerEnabled}"
+                        />
 
-            <TextBlock
-                DockPanel.Dock="Top"
-                TextWrapping="Wrap"
-                Text="{Binding Source={x:Static properties:Resources.String_Backup_Interval}, StringFormat={}{0}:}"
-                Margin="5"
-                VerticalAlignment="Center"
-                TextAlignment="Center"/>
+                    <TextBlock
+                        DockPanel.Dock="Top"
+                        TextWrapping="Wrap"
+                        Text="{Binding Source={x:Static properties:Resources.String_Backup_Interval}, StringFormat={}{0}:}"
+                        Margin="5"
+                        VerticalAlignment="Center"
+                        TextAlignment="Center"/>
 
-            <StackPanel
-                DockPanel.Dock="Top"
-                Orientation="Horizontal"
-                HorizontalAlignment="Center"
-                >
-                <TextBox
-                    TextWrapping="NoWrap"
-                    TextAlignment="Center"
-                    InputMethod.IsInputMethodEnabled="False"
-                    Width="40"
-                    Margin="5"
-                    IsReadOnly="{Binding SchedulerEnabled}"
-                    LostKeyboardFocus="TextBox_LostKeyboardFocus">
-                    <TextBox.Text>
-                        <Binding Path="BackupInterval"
-                                 Mode="TwoWay"
-                                 UpdateSourceTrigger="PropertyChanged">
-                            <Binding.ValidationRules>
-                                <local:PositiveIntegerRule/>
-                            </Binding.ValidationRules>
-                        </Binding>
-                    </TextBox.Text>
-                </TextBox>
-                <TextBlock
-                    Text="{x:Static properties:Resources.String_Min}"
-                    Margin="5"
-                    VerticalAlignment="Center"
-                    TextAlignment="Center"/>
-            </StackPanel>
+                    <StackPanel
+                        DockPanel.Dock="Top"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        >
+                        <TextBox
+                            TextWrapping="NoWrap"
+                            TextAlignment="Center"
+                            InputMethod.IsInputMethodEnabled="False"
+                            Width="40"
+                            Margin="5"
+                            IsReadOnly="{Binding SchedulerEnabled}"
+                            LostKeyboardFocus="TextBox_LostKeyboardFocus">
+                            <TextBox.Text>
+                                <Binding Path="BackupInterval"
+                                         Mode="TwoWay"
+                                         UpdateSourceTrigger="PropertyChanged">
+                                    <Binding.ValidationRules>
+                                        <local:PositiveIntegerRule/>
+                                    </Binding.ValidationRules>
+                                </Binding>
+                            </TextBox.Text>
+                        </TextBox>
+                        <TextBlock
+                            Text="{x:Static properties:Resources.String_Min}"
+                            Margin="5"
+                            VerticalAlignment="Center"
+                            TextAlignment="Center"/>
+                    </StackPanel>
 
-            <TextBlock
-                DockPanel.Dock="Top"
-                TextWrapping="Wrap"
-                Text="{Binding Source={x:Static properties:Resources.String_Maximum_Number_of_Backups}, StringFormat={}{0}:}"
-                Margin="5"
-                VerticalAlignment="Center"
-                TextAlignment="Center"/>
+                    <TextBlock
+                        DockPanel.Dock="Top"
+                        TextWrapping="Wrap"
+                        Text="{Binding Source={x:Static properties:Resources.String_Maximum_Number_of_Backups}, StringFormat={}{0}:}"
+                        Margin="5"
+                        VerticalAlignment="Center"
+                        TextAlignment="Center"/>
 
-            <StackPanel
-                DockPanel.Dock="Top"
-                Orientation="Horizontal"
-                HorizontalAlignment="Center"
-                >
-                <TextBox
-                    TextWrapping="NoWrap"
-                    TextAlignment="Center"
-                    InputMethod.IsInputMethodEnabled="False"
-                    Width="40"
-                    Margin="5"
-                    IsReadOnly="{Binding SchedulerEnabled}"
-                    LostKeyboardFocus="TextBox_LostKeyboardFocus">
-                    <TextBox.Text>
-                        <Binding Path="MaxBackups"
-                                             Mode="TwoWay"
-                                             UpdateSourceTrigger="PropertyChanged"
-                                             >
-                            <Binding.ValidationRules>
-                                <local:PositiveIntegerRule/>
-                            </Binding.ValidationRules>
-                        </Binding>
-                    </TextBox.Text>
-                </TextBox>
-            </StackPanel>
+                    <StackPanel
+                        DockPanel.Dock="Top"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        >
+                        <TextBox
+                            TextWrapping="NoWrap"
+                            TextAlignment="Center"
+                            InputMethod.IsInputMethodEnabled="False"
+                            Width="40"
+                            Margin="5"
+                            IsReadOnly="{Binding SchedulerEnabled}"
+                            LostKeyboardFocus="TextBox_LostKeyboardFocus">
+                            <TextBox.Text>
+                                <Binding Path="MaxBackups"
+                                                     Mode="TwoWay"
+                                                     UpdateSourceTrigger="PropertyChanged"
+                                                     >
+                                    <Binding.ValidationRules>
+                                        <local:PositiveIntegerRule/>
+                                    </Binding.ValidationRules>
+                                </Binding>
+                            </TextBox.Text>
+                        </TextBox>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
 
             <Button
                 DockPanel.Dock="Bottom"

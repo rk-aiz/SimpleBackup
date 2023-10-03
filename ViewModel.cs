@@ -128,11 +128,6 @@ namespace SimpleBackup
             {
                 _backupScheduler?.StopTimer();
                 _backupScheduler = value;
-                /*if (_backupScheduler != null)
-                {
-                    _backupScheduler.BackupCompleted += new BackupCompletedEventHandler(BackupTask_Completed);
-                    _backupScheduler.BackupNow();
-                }*/
             }
         }
 

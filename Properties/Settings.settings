@@ -2,23 +2,26 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SimpleBackup.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="Target_Directory" Type="System.String" Scope="User">
+    <Setting Name="Target_Directory" Roaming="true" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="Save_Directory" Type="System.String" Scope="User">
+    <Setting Name="Save_Directory" Roaming="true" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="Backup_Interval" Type="System.UInt32" Scope="User">
+    <Setting Name="Backup_Interval" Roaming="true" Type="System.UInt32" Scope="User">
       <Value Profile="(Default)">10</Value>
     </Setting>
-    <Setting Name="Maximum_Number_of_Backups" Type="System.UInt32" Scope="User">
+    <Setting Name="Maximum_Number_of_Backups" Roaming="true" Type="System.UInt32" Scope="User">
       <Value Profile="(Default)">10</Value>
     </Setting>
-    <Setting Name="Software_Render" Type="System.Boolean" Scope="User">
+    <Setting Name="Software_Render" Roaming="true" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="Locale" Type="System.String" Scope="User">
+    <Setting Name="Locale" Roaming="true" Type="System.String" Scope="User">
       <Value Profile="(Default)">Default</Value>
+    </Setting>
+    <Setting Name="IsFirstRun" Roaming="true" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>

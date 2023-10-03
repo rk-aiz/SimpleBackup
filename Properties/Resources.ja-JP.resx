@@ -150,6 +150,12 @@
   <data name="String_Min" xml:space="preserve">
     <value>分</value>
   </data>
+  <data name="String_Off" xml:space="preserve">
+    <value>オフ</value>
+  </data>
+  <data name="String_On" xml:space="preserve">
+    <value>オン</value>
+  </data>
   <data name="String_Open_Backup_Source_Folder" xml:space="preserve">
     <value>バックアップ対象を開く</value>
   </data>

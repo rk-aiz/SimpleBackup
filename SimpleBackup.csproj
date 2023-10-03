@@ -65,6 +65,7 @@
       <HintPath>packages\Microsoft-WindowsAPICodePack-ShellExtensions.1.1.5\lib\net48\Microsoft.WindowsAPICodePack.ShellExtensions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
@@ -92,8 +93,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CofDialogHelper.cs" />
-    <Compile Include="DirectoryMeasure.cs" />
+    <Compile Include="Models\CofDialogHelper.cs" />
+    <Compile Include="Models\DirectoryMeasure.cs" />
     <Compile Include="DirectoryPathTextBox.cs" />
     <Compile Include="ProgressChangedEventArgs.cs" />
     <Compile Include="Properties\Resources.ja-JP1.Designer.cs">
@@ -109,7 +110,7 @@
     <Compile Include="StatusHelper.cs" />
     <Compile Include="ValidationRules.cs" />
     <Compile Include="ViewModel.cs" />
-    <Compile Include="ZipArchiveHelper.cs" />
+    <Compile Include="Models\ZipArchiveHelper.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -130,6 +131,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="SliderButtonDictionary.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\Resources.Designer.cs">

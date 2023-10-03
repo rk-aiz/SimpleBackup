@@ -160,6 +160,24 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Off に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Off {
+            get {
+                return ResourceManager.GetString("String_Off", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   On に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_On {
+            get {
+                return ResourceManager.GetString("String_On", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Open Source Folder に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Open_Backup_Source_Folder {
