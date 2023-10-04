@@ -5,7 +5,7 @@
     <local:BooleanToEnumConverter x:Key="BooleanToEnumConverter"/>
 
     <ControlTemplate x:Key="ToggleSlider" TargetType="{x:Type ToggleButton}">
-        <Grid Margin="10, 0" Background="Transparent">
+        <Grid Margin="20, 0" Background="Transparent">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="40" />

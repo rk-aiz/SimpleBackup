@@ -1,10 +1,13 @@
 ﻿using SimpleBackup.Properties;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace SimpleBackup
 {
@@ -38,10 +41,12 @@ namespace SimpleBackup
                         SaveDir,
                         BackupInterval
                     );
+                    StatusHelper.RequestLockSetting();
                 }
                 else
                 {
                     BackupScheduler?.StopTimer();
+                    StatusHelper.RequestUnlockSetting();
                 }
 
                 OnPropertyChanged("SchedulerEnabled");
@@ -77,6 +82,8 @@ namespace SimpleBackup
                     StatusHelper.UpdateStatus($"{LocalizeHelper.GetString("String_Save_Location")} -> {Settings.Default.Save_Directory}");
                     Debug.WriteLine($"SaveDir : {Settings.Default.Save_Directory}");
                     OnPropertyChanged("SaveDir");
+                    BackupHistory.Clear();
+                    LoadBackupHistory();
                     ResetSequence();
                 }
             }
@@ -117,7 +124,8 @@ namespace SimpleBackup
         }
 
         //バックアップ実施履歴
-        public ObservableCollection<BackupTask> BackupHistory { get; set; } = new ObservableCollection<BackupTask>();
+        public ObservableCollection<BackupTask> BackupHistory { get; } = new ObservableCollection<BackupTask>();
+        private readonly object _backupHistoryLockObj = new object();
 
         //実行中のバックアップ処理
         private BackupScheduler _backupScheduler;
@@ -131,34 +139,45 @@ namespace SimpleBackup
             }
         }
 
-        private void BackupTask_Completed(object sender, BackupCompletedEventArgs e)
+        private async void BackupTask_Completed(object sender, BackupCompletedEventArgs e)
         {
             if (e.BackupTask.Status == BackupTaskStatus.Failed)
             {
                 e.BackupTask.Index = -1;
                 return;
             }
+            var dp = Dispatcher.CurrentDispatcher;
 
-            for (int n = 0; n < BackupHistory.Count;)
+            await Task.Run(() =>
             {
-                var entry = BackupHistory[n];
+                lock (_backupHistoryLockObj)
+                {
+                    if (e.BackupTask.SaveDir == SaveDir)
+                    {
+                        for (int n = 0; n < BackupHistory.Count;)
+                        {
+                            var entry = BackupHistory[n];
 
-                if (entry.InSequence == true &&
-                    entry.Status == BackupTaskStatus.Completed)
-                {
-                    entry.Index++;
-                }
+                            if (entry.InSequence == true &&
+                                entry.Status == BackupTaskStatus.Completed)
+                            {
+                                entry.Index++;
+                            }
 
-                if (entry.InSequence == true &&
-                    entry.Index >= MaxBackups)
-                {
-                    RemoveBackup(entry);
+                            if (entry.InSequence == true &&
+                                entry.Index >= MaxBackups)
+                            {
+                                dp.InvokeAsync(() => RemoveBackup(entry));
+                            }
+                            else
+                            {
+                                n++;
+                            }
+                        }
+                    }
                 }
-                else
-                {
-                    n++;
-                }
-            }
+                JsonHelper.SerializeToFile(BackupHistory, SaveDir);
+            });
         }
 
         public void CreateBackupTask()
@@ -166,7 +185,7 @@ namespace SimpleBackup
             CreateBackupTask(BackupTargetDir, SaveDir);
         }
 
-        public void CreateBackupTask(string sourcePath, string saveDir)
+        public async void CreateBackupTask(string sourcePath, string saveDir)
         {
             //バックアップ対象が存在しない場合中止
             if (String.IsNullOrWhiteSpace(sourcePath) || Directory.Exists(sourcePath) == false)
@@ -198,8 +217,13 @@ namespace SimpleBackup
                 InSequence = true
             };
             bt.BackupCompleted += new BackupCompletedEventHandler(BackupTask_Completed);
-
-            BackupHistory.Add(bt);
+            await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
+            {
+                lock (_backupHistoryLockObj)
+                {
+                    BackupHistory.Add(bt);
+                }
+            });
 
             bt.Backup();
         }
@@ -233,8 +257,22 @@ namespace SimpleBackup
                 }
                 BackupHistory.Remove(entry);
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+        }
+
+        public async void LoadBackupHistory()
+        {
+            var loadedCollection = await JsonHelper.DeserializeFromFile<List<BackupTask>>(SaveDir);
+
+            if (loadedCollection?.Count >= 1)
+            {
+                BackupHistory.AddRange(loadedCollection);
+            }
+
+            ResetSequence();
         }
 
         private void ResetSequence()

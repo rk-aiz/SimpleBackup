@@ -1,10 +1,10 @@
-﻿using System;
+﻿using SimpleBackup.Models;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using SimpleBackup.Models;
 
 namespace SimpleBackup
 {
@@ -26,6 +26,9 @@ namespace SimpleBackup
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
+        /// <summary>
+        /// バックアップ元・バックアップ保存先が同じ場合、一連のバックアップシークエンスとして扱うためのフラグ
+        /// </summary>
         private bool _InSequence = true;
         public bool InSequence
         {
@@ -76,7 +79,7 @@ namespace SimpleBackup
             get { return _progress; }
             set
             {
-                if (_progress != value)
+                if (_progress < value)
                 {
                     _progress = value;
                     OnPropertyChanged("Progress");
@@ -87,7 +90,9 @@ namespace SimpleBackup
         //バックアップ処理中のロック
         private CancellationTokenSource cTokenSource;
 
-        //バックアップ終了時のイベント
+        /// <summary>
+        /// バックアップ処理完了時のイベント
+        /// </summary>
         public event BackupCompletedEventHandler BackupCompleted;
 
         public BackupTask()
@@ -106,6 +111,7 @@ namespace SimpleBackup
                     zah.ProgressChanged += (s, e) =>
                     {
                         Progress = e.Progress;
+                        //throw new Exception($"this is test and progress :{Progress}");
                     };
                     zah.CreateZipArchive();
                 }
@@ -116,6 +122,9 @@ namespace SimpleBackup
             });
         }
 
+        /// <summary>
+        /// バックアップ処理実行
+        /// </summary>
         public async void Backup()
         {
             //バックアップ処理が既に実行中の場合中止
@@ -124,6 +133,9 @@ namespace SimpleBackup
             //ステータスバー更新
             StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_process_in_progress"));
             StatusHelper.SetProgressStatus(true);
+
+            //バックアップ処理中は設定変更できないようにする
+            StatusHelper.RequestLockSetting();
 
             //Destination Path
             var savePath = System.IO.Path.Combine(SaveDir, FileName);
@@ -148,6 +160,7 @@ namespace SimpleBackup
                 }
                 finally
                 {
+                    StatusHelper.RequestUnlockSetting();
                     StatusHelper.SetProgressStatus(false);
                     OnBackupCompleted();
                     Debug.WriteLine($"Backup -> {savePath}");

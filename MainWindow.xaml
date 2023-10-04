@@ -133,28 +133,28 @@
                         Stretch="Fill"
                         Visibility="Collapsed" Data="" />
                     <Button Name="cancelButton" Visibility="Collapsed" Click="CancelButton_Click"
-                        HorizontalAlignment="Right" Margin="2"
-                        HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center">
+                        HorizontalAlignment="Right" Margin="2">
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="{x:Type Button}">
-                                            <Border Name="Border" Background="#80FFFFFF"
-                                                Width="75" Height="24" CornerRadius="12">
-                                                <TextBlock Name="Label"
-                                                    Width="75" Height="16"
-                                                    FontSize="14"
-                                                    TextAlignment="Center"
-                                                    HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center"
-                                                    FontWeight="UltraBold"
-                                                    Foreground="#FF3010"
-                                                    Text="Cancel" />
+                                            <Border Name="Border"
+                                                    Width="75" Height="24"
+                                                    Background="#80FFFFFF"
+                                                    CornerRadius="12">
+                                                <Border HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Label Name="Label"
+                                                           Padding="0"
+                                                           FontSize="14"
+                                                           FontWeight="ExtraBold"
+                                                           Foreground="#FF7862"
+                                                           Content="Cancel"/>
+                                                </Border>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Cursor" Value="Hand" />
                                                     <Setter TargetName="Border" Property="Background" Value="#D5FFFFFF" />
                                                 </Trigger>
                                                 <MultiTrigger>
@@ -162,7 +162,7 @@
                                                         <Condition Property="IsMouseOver" Value="True" />
                                                         <Condition Property="IsMouseCaptured" Value="True" />
                                                     </MultiTrigger.Conditions>
-                                                    <Setter TargetName="Label" Property="Foreground" Value="#B03000" />
+                                                    <Setter TargetName="Label" Property="Control.Foreground" Value="#EE3416" />
                                                 </MultiTrigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -182,23 +182,22 @@
                         <Setter TargetName="cancelButton" Property="Visibility" Value="Visible" />
                     </MultiDataTrigger>
                     <DataTrigger Binding="{Binding InSequence}" Value="False">
-                        <Setter TargetName="index"
-                            Property="TextBlock.Visibility"
-                            Value="Hidden" />
+                        <Setter TargetName="index" Property="Visibility" Value="Hidden" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Processing}">
                         <Setter TargetName="progress" Property="Visibility" Value="Visible" />
                     </DataTrigger>
-                    <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Failed}">
-                        <Setter TargetName="statusIcon" Property="Visibility" Value="Visible" />
-                        <Setter TargetName="statusIcon" Property="Fill" Value="Red" />
-                        <Setter TargetName="statusIcon" Property="Data" Value="{StaticResource ErrorPathIcon}" />
-                    </DataTrigger>
                     <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Completed}">
                         <Setter TargetName="statusIcon" Property="Visibility" Value="Visible" />
-                        <Setter TargetName="statusIcon" Property="Fill" Value="#54e0bd" />
+                        <Setter TargetName="statusIcon" Property="Fill" Value="#7ea4ea" />
                         <Setter TargetName="statusIcon" Property="Data" Value="{StaticResource CompletePathIcon}" />
                         <Setter TargetName="saveTime" Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Failed}">
+                        <Setter TargetName="index" Property="Visibility" Value="Hidden" />
+                        <Setter TargetName="statusIcon" Property="Visibility" Value="Visible" />
+                        <Setter TargetName="statusIcon" Property="Fill" Value="#ff523b" />
+                        <Setter TargetName="statusIcon" Property="Data" Value="{StaticResource ErrorPathIcon}" />
                     </DataTrigger>
                 </DataTemplate.Triggers>
             </DataTemplate>
@@ -219,7 +218,7 @@
                         <Setter Property="ToolTip.IsOpen" Value="True"/>
                         <Setter Property="Background" Value="#FF8888"/>
                     </Trigger>
-                    <DataTrigger Binding="{Binding SchedulerEnabled}" Value="true">
+                    <DataTrigger Binding="{Binding SettingLock, Source={x:Static local:StatusHelper.Instance}}" Value="true">
                         <Setter Property="Foreground" Value="#404040"/>
                         <Setter Property="Background" Value="#D0D0D0"/>
                         <Setter Property="Cursor" Value="Arrow"/>
@@ -291,8 +290,7 @@
             Grid.Column="1"
             Grid.RowSpan="3"
             Margin="0,10"
-            LastChildFill="False"
-            >
+            LastChildFill="False">
             <DockPanel.Resources>
                 <Style TargetType="{x:Type TextBox}">
                     <Style.Triggers>
@@ -354,7 +352,7 @@
                             InputMethod.IsInputMethodEnabled="False"
                             Width="40"
                             Margin="5"
-                            IsReadOnly="{Binding SchedulerEnabled}"
+                            IsReadOnly="{Binding SettingLock, Source={x:Static local:StatusHelper.Instance}}"
                             LostKeyboardFocus="TextBox_LostKeyboardFocus">
                             <TextBox.Text>
                                 <Binding Path="BackupInterval"
@@ -392,7 +390,7 @@
                             InputMethod.IsInputMethodEnabled="False"
                             Width="40"
                             Margin="5"
-                            IsReadOnly="{Binding SchedulerEnabled}"
+                            IsReadOnly="{Binding SettingLock, Source={x:Static local:StatusHelper.Instance}}"
                             LostKeyboardFocus="TextBox_LostKeyboardFocus">
                             <TextBox.Text>
                                 <Binding Path="MaxBackups"

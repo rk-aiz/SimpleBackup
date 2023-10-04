@@ -29,6 +29,22 @@ namespace SimpleBackup
             set { _progressStatus = value; OnPropertyChanged("ProgressStatus"); }
         }
 
+        //バックアップ設定の変更可/不可
+        private int _settingLock = 0;
+        public bool SettingLock { get { return _settingLock > 0; } }
+
+        public static void RequestLockSetting()
+        {
+            Instance._settingLock++;
+            Instance.OnPropertyChanged("SettingLock");
+        }
+
+        public static void RequestUnlockSetting()
+        {
+            Instance._settingLock--;
+            Instance.OnPropertyChanged("SettingLock");
+        }
+
         //ステータスバーに表示するメッセージ
         private string _message;
         public string Message

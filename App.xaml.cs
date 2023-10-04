@@ -1,12 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Globalization;
-using System.Windows;
-using System.Diagnostics;
-using SimpleBackup.Properties;
+﻿using SimpleBackup.Properties;
+using System;
 using System.Configuration;
-using System.Collections;
-using System.Runtime.Remoting.Contexts;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Windows;
 
 namespace SimpleBackup
 {
@@ -38,7 +37,12 @@ namespace SimpleBackup
                 var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoaming);
                 try
                 {
-                    Directory.GetParent(config.FilePath).Parent.Delete(true);
+                    var di = Directory.GetParent(config.FilePath).Parent;
+                    var assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+                    if (di.Name.Contains(assemblyName))
+                    {
+                        DirectoryCleaning.DeleteAllExcept(di.FullName, config.FilePath);
+                    }
                 }
                 catch (Exception ex)
                 {

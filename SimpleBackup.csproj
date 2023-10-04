@@ -64,6 +64,9 @@
     <Reference Include="Microsoft.WindowsAPICodePack.ShellExtensions, Version=1.1.5.0, Culture=neutral, PublicKeyToken=8985beaab7ea3f04, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft-WindowsAPICodePack-ShellExtensions.1.1.5\lib\net48\Microsoft.WindowsAPICodePack.ShellExtensions.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
@@ -93,9 +96,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DirectoryCleaning.cs" />
+    <Compile Include="JsonHelper.cs" />
     <Compile Include="Models\CofDialogHelper.cs" />
     <Compile Include="Models\DirectoryMeasure.cs" />
     <Compile Include="DirectoryPathTextBox.cs" />
+    <Compile Include="ObservableCollectionExtensions.cs" />
     <Compile Include="ProgressChangedEventArgs.cs" />
     <Compile Include="Properties\Resources.ja-JP1.Designer.cs">
       <AutoGen>True</AutoGen>

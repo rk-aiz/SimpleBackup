@@ -1,11 +1,11 @@
-﻿using System;
+﻿using SimpleBackup.Models;
+using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
-using SimpleBackup.Models;
 
 namespace SimpleBackup
 {
@@ -21,6 +21,7 @@ namespace SimpleBackup
             InitializeComponent();
 
             _vm = ViewModel.Instance;
+            _vm.LoadBackupHistory();
 
             //HwndSourceが初期化された時に呼び出される
             SourceInitialized += (sender, e) =>
@@ -45,7 +46,7 @@ namespace SimpleBackup
         //ディレクトリ選択ダイアロクを表示
         private async void DirectoryPathTextBox_Selected(object sender, RoutedEventArgs e)
         {
-            if (_vm.SchedulerEnabled == true) { return; }
+            if (StatusHelper.Instance.SettingLock == true) { return; }
             if (!(sender is DirectoryPathTextBox tb)) { return; }
 
             tb.Text = await CofDialogHelper.ShowDialogAsync(Dispatcher, tb.Text, tb.Description);
