@@ -1,12 +1,15 @@
 ﻿using SimpleBackup.Properties;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Data;
 using System.Windows.Threading;
 
 namespace SimpleBackup
@@ -18,6 +21,11 @@ namespace SimpleBackup
     {
         private readonly static ViewModel _instance = new ViewModel();
         public static ViewModel Instance { get { return _instance; } }
+
+        private ViewModel()
+        {
+            BindingOperations.EnableCollectionSynchronization(BackupHistory, _backupHistorySync);
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
@@ -82,7 +90,6 @@ namespace SimpleBackup
                     StatusHelper.UpdateStatus($"{LocalizeHelper.GetString("String_Save_Location")} -> {Settings.Default.Save_Directory}");
                     Debug.WriteLine($"SaveDir : {Settings.Default.Save_Directory}");
                     OnPropertyChanged("SaveDir");
-                    BackupHistory.Clear();
                     LoadBackupHistory();
                     ResetSequence();
                 }
@@ -123,9 +130,25 @@ namespace SimpleBackup
             }
         }
 
+        public ProcessPriorityClass ProcessPriority
+        {
+            get
+            {
+                return Process.GetCurrentProcess().PriorityClass;
+            }
+            set
+            {
+                Process.GetCurrentProcess().PriorityClass = value;
+            }
+        }
+
         //バックアップ実施履歴
         public ObservableCollection<BackupTask> BackupHistory { get; } = new ObservableCollection<BackupTask>();
+
+        // 別スレッドでループ処理をする時にコレクションのサイズが変わらないようにする
+        // (EnableCollectionSynchronizationは適用していないので別スレッドからのコレクション変更はできない)
         private readonly object _backupHistoryLockObj = new object();
+        private readonly object _backupHistorySync = new object();
 
         //実行中のバックアップ処理
         private BackupScheduler _backupScheduler;
@@ -146,37 +169,35 @@ namespace SimpleBackup
                 e.BackupTask.Index = -1;
                 return;
             }
-            var dp = Dispatcher.CurrentDispatcher;
 
+            //シークエンス中のバックアップ履歴のIndexをインクリメント
+            //Indexが最大バックアップ保存件数以上の場合Remove
             await Task.Run(() =>
             {
+                //ループ中にBackupHistory.Countが変わらないようにロック
                 lock (_backupHistoryLockObj)
                 {
                     if (e.BackupTask.SaveDir == SaveDir)
                     {
-                        for (int n = 0; n < BackupHistory.Count;)
+                        List<BackupTask> li = new List<BackupTask>();
+                        Parallel.ForEach(BackupHistory, entry =>
                         {
-                            var entry = BackupHistory[n];
-
                             if (entry.InSequence == true &&
                                 entry.Status == BackupTaskStatus.Completed)
                             {
                                 entry.Index++;
                             }
 
-                            if (entry.InSequence == true &&
-                                entry.Index >= MaxBackups)
+                            if (entry.InSequence == true && entry.Index >= MaxBackups)
                             {
-                                dp.InvokeAsync(() => RemoveBackup(entry));
+                                li.Add(entry);
                             }
-                            else
-                            {
-                                n++;
-                            }
-                        }
+                        });
+
+                        Parallel.ForEach(li, entry => RemoveBackup(entry, true));
+                        JsonHelper.SerializeToFile(BackupHistory, SaveDir);
                     }
                 }
-                JsonHelper.SerializeToFile(BackupHistory, SaveDir);
             });
         }
 
@@ -203,7 +224,8 @@ namespace SimpleBackup
 
             var saveName = $"{Path.GetFileName(sourcePath)}-{DateTime.Now:yyyyMMdd-hh-mm-ss}.zip";
             var savePath = System.IO.Path.Combine(saveDir, saveName);
-            //バックアップファイルが既に存在する場合中止
+
+            //同名バックアップファイルが既に存在する場合中止
             if (File.Exists(savePath)) { return; }
 
             RemoveFailedBackup();
@@ -217,7 +239,7 @@ namespace SimpleBackup
                 InSequence = true
             };
             bt.BackupCompleted += new BackupCompletedEventHandler(BackupTask_Completed);
-            await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
+            await Task.Run(() =>
             {
                 lock (_backupHistoryLockObj)
                 {
@@ -246,7 +268,7 @@ namespace SimpleBackup
             }
         }
 
-        public void RemoveBackup(BackupTask entry)
+        public async void RemoveBackup(BackupTask entry, bool noLock = false)
         {
             try
             {
@@ -255,7 +277,20 @@ namespace SimpleBackup
                 {
                     File.Delete(path);
                 }
-                BackupHistory.Remove(entry);
+                if (noLock)
+                {
+                    BackupHistory.Remove(entry);
+                }
+                else
+                {
+                    await Task.Run(() =>
+                    {
+                        lock (_backupHistoryLockObj)
+                        {
+                            BackupHistory.Remove(entry);
+                        }
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -269,7 +304,14 @@ namespace SimpleBackup
 
             if (loadedCollection?.Count >= 1)
             {
-                BackupHistory.AddRange(loadedCollection);
+                await Task.Run(() =>
+                {
+                    lock (_backupHistoryLockObj)
+                    {
+                        BackupHistory.Clear();
+                        BackupHistory.AddRange(loadedCollection);
+                    }
+                });
             }
 
             ResetSequence();
@@ -280,7 +322,7 @@ namespace SimpleBackup
             int index = 0;
 
             foreach (BackupTask entry in
-                BackupHistory.OrderByDescending<BackupTask, DateTime>(task => task.SaveTime)
+                BackupHistory.OrderByDescending<BackupTask, DateTime>(bt => bt.SaveTime)
             )
             {
                 if (

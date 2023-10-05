@@ -3,8 +3,14 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
+using System.Windows;
+using static System.Windows.Forms.AxHost;
+using Newtonsoft.Json.Linq;
+using System.Windows.Shapes;
 
 namespace SimpleBackup
 {
@@ -101,31 +107,12 @@ namespace SimpleBackup
             _status = BackupTaskStatus.Processing;
         }
 
-        private Task CreateZipAsync(DirectoryInfo src, string path, CancellationToken token)
-        {
-            return Task.Run(() =>
-            {
-                try
-                {
-                    var zah = new ZipArchiveHelper(src, path, token);
-                    zah.ProgressChanged += (s, e) =>
-                    {
-                        Progress = e.Progress;
-                        //throw new Exception($"this is test and progress :{Progress}");
-                    };
-                    zah.CreateZipArchive();
-                }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
-            });
-        }
+        private string _savePath;
 
         /// <summary>
         /// バックアップ処理実行
         /// </summary>
-        public async void Backup()
+        public void Backup()
         {
             //バックアップ処理が既に実行中の場合中止
             if (cTokenSource != null) { return; }
@@ -138,35 +125,64 @@ namespace SimpleBackup
             StatusHelper.RequestLockSetting();
 
             //Destination Path
-            var savePath = System.IO.Path.Combine(SaveDir, FileName);
+            _savePath = System.IO.Path.Combine(SaveDir, FileName);
+            DirectoryInfo diTarget = new DirectoryInfo(SourcePath);
+            cTokenSource = new CancellationTokenSource();
 
-            using (cTokenSource = new CancellationTokenSource())
+            var zah = new ZipArchiveHelper(diTarget, _savePath, cTokenSource.Token);
+
+            var dp = Dispatcher.CurrentDispatcher;
+            zah.ProgressChanged += (s, e) => dp.InvokeAsync(() => ProgressChangedCallback(s, e));
+
+            zah.ContinueWith = (ex) => ThreadContinueMethod(ex);
+
+            ThreadStart ts = new ThreadStart(() => zah.CreateZipArchive());
+
+            ts += () => ThreadCompletedCallback();
+
+            Thread thread = new Thread(ts) { IsBackground = true };
+            thread.Start();
+        }
+
+        /// <summary>
+        /// スレッド完了後の処理
+        /// キャンセルかエラーがあった場合バックアップ失敗として処理
+        /// </summary>
+        /// <param name="ex"></param>
+        private void ThreadContinueMethod(Exception ex)
+        {
+            if (ex == null)
             {
-                DirectoryInfo diTarget = new DirectoryInfo(SourcePath);
-                try
-                {
-                    await CreateZipAsync(diTarget, savePath, cTokenSource.Token);
-
-                    Status = BackupTaskStatus.Completed;
-                    var msg = $"{LocalizeHelper.GetString("String_Backup_process_completed")} -> {savePath}";
-                    StatusHelper.UpdateStatus(msg);
-                }
-                catch (Exception ex)
-                {
-                    if (File.Exists(savePath)) { File.Delete(savePath); }
-                    Status = BackupTaskStatus.Failed;
-                    var msg = $"{LocalizeHelper.GetString("String_Backup_process_failed")} : {ex.Message}";
-                    StatusHelper.UpdateStatus(msg);
-                }
-                finally
-                {
-                    StatusHelper.RequestUnlockSetting();
-                    StatusHelper.SetProgressStatus(false);
-                    OnBackupCompleted();
-                    Debug.WriteLine($"Backup -> {savePath}");
-                }
+                Status = BackupTaskStatus.Completed;
+                var msg = $"{LocalizeHelper.GetString("String_Backup_process_completed")} -> {_savePath}";
+                StatusHelper.UpdateStatus(msg);
             }
+            else
+            {
+                if (File.Exists(_savePath)) { File.Delete(_savePath); }
+                Status = BackupTaskStatus.Failed;
+                var msg = $"{LocalizeHelper.GetString("String_Backup_process_failed")} : {ex.Message}";
+                StatusHelper.UpdateStatus(msg);
+            }
+        }
+
+        /// <summary>
+        /// スレッド完了後にOnBackupCompleted()実行と
+        /// cTokenSourceの破棄
+        /// </summary>
+        private void ThreadCompletedCallback()
+        {
+            StatusHelper.RequestUnlockSetting();
+            StatusHelper.SetProgressStatus(false);
+            OnBackupCompleted();
+            cTokenSource?.Dispose();
             cTokenSource = null;
+            Debug.WriteLine($"Backup -> {_savePath}");
+        }
+
+        private void ProgressChangedCallback(object sender, ProgressChangedEventArgs e)
+        {
+            Progress = e.Progress;
         }
 
         private void OnBackupCompleted()

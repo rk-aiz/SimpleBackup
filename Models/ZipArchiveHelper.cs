@@ -30,6 +30,12 @@ namespace SimpleBackup.Models
         private CancellationToken _cToken;
 
         /// <summary>
+        /// Method that receives callbacks from threads upon completion.
+        /// </summary>
+        public delegate void ZipArchiveCompletedCallback(Exception ex);
+        public ZipArchiveCompletedCallback ContinueWith { get; set; }
+
+        /// <summary>
         /// ディレクトリからZipファイルを作成します
         /// </summary>
         /// <param name="di">ソースとなるディレクトリ</param>
@@ -60,10 +66,15 @@ namespace SimpleBackup.Models
                 {
                     CreateEntryRecurse(_baseDir);
                 };
+                ContinueWith.Invoke(null);
             }
             catch (Exception ex)
             {
-                throw ex;
+                ContinueWith.Invoke(ex);
+            }
+            finally
+            {
+                _archive?.Dispose();
             }
         }
 

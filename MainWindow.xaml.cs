@@ -97,8 +97,10 @@ namespace SimpleBackup
 
         //BackupHistoryListBoxをダブルクリックしたら
         //ListBoxItemのバックアップファイルを開く
-        private void BackupHistoryListBox_MouseDoubleClick(object sender, RoutedEventArgs e)
+        private void BackupHistoryListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (e.ChangedButton != MouseButton.Left) { return; }
+
             if (!(e.OriginalSource is DependencyObject dpobj)) { return; }
             //VisualTreeを上に辿ってListBoxItemを見つける
             if (!(VisualTreeHelper.FindAncestorByType(dpobj, typeof(ListBoxItem)) is ListBoxItem lbi)) { return; }

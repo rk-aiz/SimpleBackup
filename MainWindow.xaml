@@ -98,8 +98,8 @@
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding InSequence}" Value="False">
                                         <Setter
-                                    Property="TextBlock.Foreground"
-                                    Value="#909090" />
+                                            Property="TextBlock.Foreground"
+                                            Value="#909090" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -107,21 +107,21 @@
                         <TextBlock x:Name="index"
                         Grid.RowSpan="2" Grid.Column="0"
                         FontSize="18"
-                        Text="{Binding Index, Converter={StaticResource IndexConverter}}"/>
+                        Text="{Binding Index, Converter={StaticResource IndexConverter}, Mode=OneWay}"/>
                         <TextBlock x:Name="saveTime"
                             Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="1"
                             FontSize="12"
                             Visibility="Hidden"
-                            Text="{Binding SaveTime, StringFormat={}{0:yyyy/MM/dd HH:mm:ss}}"/>
+                            Text="{Binding SaveTime, StringFormat={}{0:yyyy/MM/dd HH:mm:ss}, Mode=OneWay}"/>
                         <TextBlock
                             Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1"
                             FontSize="16"
                             HorizontalAlignment="Stretch"
                             ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"
-                            Text="{Binding FileName}" TextTrimming="CharacterEllipsis" />
+                            Text="{Binding FileName, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
                     </Grid>
                     <ProgressBar x:Name="progress"
-                        Value="{Binding Progress}"
+                        Value="{Binding Progress, Mode=OneWay}"
                         Style="{StaticResource ProgressBarStyle}"
                         VerticalAlignment="Top"
                         Margin="2"
@@ -147,7 +147,7 @@
                                                     <Label Name="Label"
                                                            Padding="0"
                                                            FontSize="14"
-                                                           FontWeight="ExtraBold"
+                                                           FontWeight="UltraBold"
                                                            Foreground="#FF7862"
                                                            Content="Cancel"/>
                                                 </Border>
