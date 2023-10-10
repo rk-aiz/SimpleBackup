@@ -66,19 +66,15 @@ namespace SimpleBackup.Helpers
             try
             {
                 _entriesCount = 0;
-                _archive = ZipFile.Open(_savePath, ZipArchiveMode.Create);
-                CreateEntries();
-                _archive?.Dispose();
+                using (_archive = ZipFile.Open(_savePath, ZipArchiveMode.Create))
+                {
+                    CreateEntries();
+                }
                 ContinueWith.Invoke(null);
             }
             catch (Exception ex)
             {
-                _archive?.Dispose();
                 ContinueWith.Invoke(ex);
-            }
-            finally
-            {
-                _archive?.Dispose();
             }
         }
 
@@ -88,58 +84,90 @@ namespace SimpleBackup.Helpers
         /// <exception cref="OperationCanceledException">CancellationTokenによってキャンセル要求があった場合中断する</exception>
         public void CreateEntries()
         {
+            Exception exception = null;
             //ディレクトリのエントリ追加
-            foreach (DirectoryInfo childDir in _targetItems.Where(item => item is DirectoryInfo))
+            foreach (FileSystemInfo item in _targetItems)
             {
                 if (_cToken.IsCancellationRequested) { throw new OperationCanceledException(); }
-
                 try
                 {
-                    _archive.CreateEntry(GetRelativePath(_baseDir, childDir));
+                    if (File.GetAttributes(item.FullName).HasFlag(FileAttributes.Directory))
+                    {
+                        CreateDirectoryEntry(item as DirectoryInfo);
+                    }
                 }
                 catch (Exception ex)
-                {
-                    throw ex;
+                { 
+                    exception = ex;
                 }
             }
 
-            foreach (FileInfo file in _targetItems.Where(item => item is FileInfo))
+            foreach (FileSystemInfo item in _targetItems)
             {
+                if (_cToken.IsCancellationRequested) { throw new OperationCanceledException(); }
                 try
                 {
-                    using (var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    if (!File.GetAttributes(item.FullName).HasFlag(FileAttributes.Directory))
                     {
-                        ZipArchiveEntry entry = _archive.CreateEntry(GetRelativePath(_baseDir, file));
-                        using (var entryStream = entry.Open())
-                        {
-                            byte[] buffer = new byte[_bufferLength];
-
-                            int read;
-
-                            //CancellationTokenの確認 && StreamReaderがファイル末尾に到達していないかの確認
-                            while ((_cToken.IsCancellationRequested == false) &&
-                                (read = fs.Read(buffer, 0, buffer.Length)) > 0)
-                            {
-                                entryStream.Write(buffer, 0, read);
-
-                                //進捗状況の計算
-                                _completedDataSize += read;
-                                var p = (int)(100 * ((float)_completedDataSize / (float)_totalTargetDataSize));
-                                if (p != _progress)
-                                {
-                                    _progress = p;
-                                    OnProgressChanged(_progress);
-                                }
-                            }
-                        }
+                        CreateFileEntry(item as FileInfo);
                     }
-                    if (_cToken.IsCancellationRequested) { throw new OperationCanceledException(); }
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"{file.Name} :Open FileStream Failed {ex.ToString()}");
-                    throw ex;
+                    exception = ex;
                 }
+            }
+
+            if (exception != null) { throw exception; }
+        }
+        private void CreateDirectoryEntry(DirectoryInfo file)
+        {
+            try
+            {
+                _archive.CreateEntry(GetRelativePath(_baseDir, file));
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        private void CreateFileEntry(FileInfo file)
+        {
+            try
+            {
+                using (var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    ZipArchiveEntry entry = _archive.CreateEntry(GetRelativePath(_baseDir, file));
+                    using (var entryStream = entry.Open())
+                    {
+                        byte[] buffer = new byte[_bufferLength];
+
+                        int read;
+
+                        //CancellationTokenの確認 && StreamReaderがファイル末尾に到達していないかの確認
+                        while ((_cToken.IsCancellationRequested == false) &&
+                            (read = fs.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            entryStream.Write(buffer, 0, read);
+
+                            //進捗状況の計算
+                            _completedDataSize += read;
+                            var p = (int)(100 * ((float)_completedDataSize / (float)_totalTargetDataSize));
+                            if (p != _progress)
+                            {
+                                _progress = p;
+                                OnProgressChanged(_progress);
+                            }
+                        }
+                    }
+                }
+                if (_cToken.IsCancellationRequested) { throw new OperationCanceledException(); }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"{file.Name} :Open FileStream Failed {ex.ToString()}");
+                throw ex;
             }
         }
 
