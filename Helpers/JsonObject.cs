@@ -11,13 +11,13 @@ namespace SimpleBackup.Helpers
 {
     internal class JsonObject
     {
-        public List<BackupTask> BackupHistory;
-        public List<string> IgnoreItems;
+        public List<BackupTask> BackupHistory { get; set; } = new List<BackupTask>();
+        public List<string> IgnoreItems { get; set; } = new List<string>();
 
         [JsonIgnore]
         public string FileName = "backup_history.json";
         //StreamWriterの順番待ち用
-        private readonly object _writerLockObject = new Object();
+        private static readonly object _writerLockObject = new Object();
 
         public JsonObject() { }
 

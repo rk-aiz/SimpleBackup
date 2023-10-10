@@ -78,7 +78,7 @@ namespace SimpleBackup
                     Debug.WriteLine($"BackupTargetDir : {Settings.Default.Target_Directory}");
                     StatusHelper.UpdateStatus($"{LocalizeHelper.GetString("String_Backup_Source")} -> {Settings.Default.Target_Directory}");
                     OnPropertyChanged("BackupTargetDir");
-                    SaveBackupHistory();
+                    //SaveBackupHistory();
                     MeasureBackupTargetDir();
                     LoadBackupHistory();
                 }
@@ -431,12 +431,28 @@ namespace SimpleBackup
         /// </summary>
         public async void SaveBackupHistory()
         {
+            if (string.IsNullOrWhiteSpace(SaveDir)) { return; }
+
+            bool serializeFlag = false;
             var jsObj = new JsonObject();
-            jsObj.BackupHistory = new List<BackupTask>(BackupHistory);
-            jsObj.IgnoreItems = CBTSource.GetIgnoreItems();
+            if (BackupHistory != null && BackupHistory.Count != 0)
+            {
+                serializeFlag = true;
+                jsObj.BackupHistory.AddRange(BackupHistory);
+            }
+
+            var ignoreItems = CBTSource.GetIgnoreItems();
+            if (ignoreItems != null && ignoreItems.Count != 0)
+            {
+                serializeFlag = true;
+                jsObj.IgnoreItems.AddRange(ignoreItems);
+            }
 
             //foreach (var item in jsObj.IgnoreItems) { Debug.WriteLine(item); }
-            await jsObj.SerializeToFileAsync(SaveDir);
+            if (serializeFlag)
+            {
+                await jsObj.SerializeToFileAsync(SaveDir);
+            }
         }
 
         private void ResetSequence()
