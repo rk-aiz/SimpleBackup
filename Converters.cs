@@ -77,4 +77,71 @@ namespace SimpleBackup
             return Binding.DoNothing;
         }
     }
+
+    /// <summary>
+    /// Booleanを反転する
+    /// </summary>
+    [ValueConversion(typeof(Boolean), typeof(Boolean))]
+    public class ReverseBooleanConverter : IValueConverter
+    {
+        public static ReverseBooleanConverter Instance = new ReverseBooleanConverter();
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return !(value is bool && (bool)value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return !(value is bool && (bool)value);
+        }
+    }
+
+    [ValueConversion(typeof(long), typeof(String))]
+    public class LengthToByteStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!(value is long length)) { return Binding.DoNothing; }
+            if (parameter is string p)
+                return LengthToByteString(length, p);
+            else
+                return LengthToByteString(length);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null)
+                return Binding.DoNothing;
+
+            long backValue;
+            if (long.TryParse((String)value, out backValue))
+                return backValue;
+
+            return Binding.DoNothing;
+        }
+
+        public string LengthToByteString(long length, string format = "{0:#,0.0}")
+        {
+            if (length > 0)
+            {
+                if (length < 1024)
+                {
+                    return String.Format($"{format} KB", (float)length / (float)1024);
+                }
+                else if (length < 1073741824)
+                {
+                    return String.Format($"{format} MB", (float)length / (float)1048576);
+                }
+                else
+                {
+                    return String.Format($"{format} GB", (float)length / (float)1073741824);
+                }
+            }
+            else
+            {
+                return "0 KB";
+            }
+        }
+    }
 }

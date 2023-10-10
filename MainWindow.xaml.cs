@@ -1,4 +1,4 @@
-﻿using SimpleBackup.Models;
+﻿using SimpleBackup.Helpers;
 using System;
 using System.Diagnostics;
 using System.Windows;
@@ -21,7 +21,6 @@ namespace SimpleBackup
             InitializeComponent();
 
             _vm = ViewModel.Instance;
-            _vm.LoadBackupHistory();
 
             //HwndSourceが初期化された時に呼び出される
             SourceInitialized += (sender, e) =>
@@ -41,23 +40,16 @@ namespace SimpleBackup
                 StatusHelper.UpdateEnabled = true;
                 StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Ready"));
             };
-        }
 
-        //ディレクトリ選択ダイアロクを表示
-        private async void DirectoryPathTextBox_Selected(object sender, RoutedEventArgs e)
-        {
-            if (StatusHelper.Instance.SettingLock == true) { return; }
-            if (!(sender is DirectoryPathTextBox tb)) { return; }
-
-            tb.Text = await CofDialogHelper.ShowDialogAsync(Dispatcher, tb.Text, tb.Description);
-
-            var be = BindingOperations.GetBindingExpression(tb, TextBox.TextProperty);
-            if (be?.HasError == false) { be?.UpdateSource(); }
+            Closed += (sender, e) =>
+            {
+                _vm.SaveBackupHistory();
+            };
         }
 
         private void BackupNowButton_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Instance.CreateBackupTask();
+            _vm.CreateBackupTask();
         }
 
         private void OpenTargetDirButton_Click(object sender, RoutedEventArgs e)
@@ -132,6 +124,18 @@ namespace SimpleBackup
             if (!(lbi.DataContext is BackupTask bt)) { return; }
 
             bt.RequestCancel();
+        }
+
+        //ディレクトリ選択ダイアロクを表示
+        private async void DirectoryPathTextBox_Selected(object sender, RoutedEventArgs e)
+        {
+            if (StatusHelper.Instance.SettingLock == true) { return; }
+            if (!(sender is DirectoryPathTextBox tb)) { return; }
+
+            tb.Text = await CofDialogHelper.ShowDialogAsync(base.Dispatcher, tb.Text, tb.Description);
+
+            var be = BindingOperations.GetBindingExpression(tb, TextBox.TextProperty);
+            if (be?.HasError == false) { be?.UpdateSource(); }
         }
     }
 }

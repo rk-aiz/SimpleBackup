@@ -117,6 +117,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="StringFormat_Files" xml:space="preserve">
+    <value>ファイル数 {0}</value>
+  </data>
+  <data name="String_Above_Normal" xml:space="preserve">
+    <value>通常以上</value>
+  </data>
+  <data name="String_Backup_History" xml:space="preserve">
+    <value>バックアップ履歴</value>
+  </data>
   <data name="String_Backup_Interval" xml:space="preserve">
     <value>バックアップ間隔</value>
   </data>
@@ -138,17 +147,41 @@
   <data name="String_Backup_target_does_not_exist" xml:space="preserve">
     <value>バックアップ対象が存在しないため、処理がキャンセルされました。</value>
   </data>
+  <data name="String_Backup_Thread_Priority" xml:space="preserve">
+    <value>バックアップスレッド優先度</value>
+  </data>
+  <data name="String_Below_Normal" xml:space="preserve">
+    <value>通常以下</value>
+  </data>
   <data name="String_Completed" xml:space="preserve">
     <value>完了</value>
   </data>
+  <data name="String_Contains" xml:space="preserve">
+    <value>内容</value>
+  </data>
   <data name="String_Failed" xml:space="preserve">
     <value>失敗</value>
+  </data>
+  <data name="String_File_Specific_Settings" xml:space="preserve">
+    <value>ファイル別設定</value>
+  </data>
+  <data name="String_Free_Space" xml:space="preserve">
+    <value>空き容量</value>
+  </data>
+  <data name="String_Highest" xml:space="preserve">
+    <value>最高</value>
+  </data>
+  <data name="String_Lowest" xml:space="preserve">
+    <value>最低</value>
   </data>
   <data name="String_Maximum_Number_of_Backups" xml:space="preserve">
     <value>最大保存数</value>
   </data>
   <data name="String_Min" xml:space="preserve">
     <value>分</value>
+  </data>
+  <data name="String_Normal" xml:space="preserve">
+    <value>通常</value>
   </data>
   <data name="String_Off" xml:space="preserve">
     <value>オフ</value>
@@ -185,5 +218,8 @@
   </data>
   <data name="String_Select_Save_Location" xml:space="preserve">
     <value>バックアップを保存する場所を選択してください</value>
+  </data>
+  <data name="String_Size" xml:space="preserve">
+    <value>サイズ</value>
   </data>
 </root>

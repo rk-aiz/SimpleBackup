@@ -7,16 +7,16 @@
         xmlns:local="clr-namespace:SimpleBackup"
         xmlns:properties="clr-namespace:SimpleBackup.Properties"
         mc:Ignorable="d"
-        Title="Simple Backup" Height="450" Width="600"
+        Title="Simple Backup" Height="500" Width="600"
         ResizeMode="NoResize">
     <Window.Resources>
         <ResourceDictionary>
 
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="SliderButtonDictionary.xaml"/>
+                <ResourceDictionary Source="ResourceDictionary.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <local:IndexConverter x:Key="IndexConverter"/>
+            <local:LengthToByteStringConverter x:Key="LengthToByteStringConverter"/>
             <BooleanToVisibilityConverter x:Key="BoolVisibilityConverter" />
 
             <Storyboard x:Key="WaitStoryboard" Timeline.DesiredFrameRate="8">
@@ -28,37 +28,6 @@
                     RepeatBehavior="Forever"/>
             </Storyboard>
 
-            <Geometry x:Key="ErrorPathIcon">
-                M 50,-10 A 60,60 180 1 1 50,110 A 60,60 180 1 1 50,-10 Z
-                M 25,15 L 50,41 L 75,15 L 85,25 L 59,50
-                L 85,75 L 75,85 L 50,59 L 25,85 L 15,75
-                L 41,50 L 15,25 Z
-            </Geometry>
-
-            <Geometry x:Key="CompletePathIcon">
-                M 50,-10 A 60,60 180 1 1 50,110 A 60,60 180 1 1 50,-10 Z
-                M 15,49 L 40,68  L 83,31 L 95,43 L 40,88
-                L 5,60 Z
-            </Geometry>
-
-            <Style x:Key="ProgressBarStyle" TargetType="{x:Type ProgressBar}">
-                <Setter Property="Foreground" Value="#FF1C61F3"/>
-                <Setter Property="Height" Value="5"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ProgressBar}">
-                            <Grid x:Name="TemplateRoot">
-                                <Rectangle x:Name="PART_Track"/>
-                                <Grid x:Name="PART_Indicator"
-                                    ClipToBounds="true" Height="5"
-                                    HorizontalAlignment="Left">
-                                    <Rectangle x:Name="Indicator" Fill="{TemplateBinding Foreground}"/>
-                                </Grid>
-                            </Grid>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
         </ResourceDictionary>
         
     </Window.Resources>
@@ -81,156 +50,11 @@
                 </CollectionViewSource.SortDescriptions>
             </CollectionViewSource>
 
-            <DataTemplate x:Key="BackupHistoryDataTemplate">
-                <Grid HorizontalAlignment="Stretch">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="10" />
-                            <RowDefinition Height="25" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="30" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.Resources>
-                            <Style TargetType="{x:Type TextBlock}">
-                                <Setter Property="VerticalAlignment" Value="Center"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding InSequence}" Value="False">
-                                        <Setter
-                                            Property="TextBlock.Foreground"
-                                            Value="#909090" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Resources>
-                        <TextBlock x:Name="index"
-                        Grid.RowSpan="2" Grid.Column="0"
-                        FontSize="18"
-                        Text="{Binding Index, Converter={StaticResource IndexConverter}, Mode=OneWay}"/>
-                        <TextBlock x:Name="saveTime"
-                            Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="1"
-                            FontSize="12"
-                            Visibility="Hidden"
-                            Text="{Binding SaveTime, StringFormat={}{0:yyyy/MM/dd HH:mm:ss}, Mode=OneWay}"/>
-                        <TextBlock
-                            Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1"
-                            FontSize="16"
-                            HorizontalAlignment="Stretch"
-                            ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"
-                            Text="{Binding FileName, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
-                    </Grid>
-                    <ProgressBar x:Name="progress"
-                        Value="{Binding Progress, Mode=OneWay}"
-                        Style="{StaticResource ProgressBarStyle}"
-                        VerticalAlignment="Top"
-                        Margin="2"
-                        Visibility="Collapsed"/>
-                    <Path x:Name="statusIcon"
-                        HorizontalAlignment="Right"
-                        Width="12" Height="12"
-                        Margin="10, 0"
-                        Stretch="Fill"
-                        Visibility="Collapsed" Data="" />
-                    <Button Name="cancelButton" Visibility="Collapsed" Click="CancelButton_Click"
-                        HorizontalAlignment="Right" Margin="2">
-                        <Button.Style>
-                            <Style TargetType="{x:Type Button}">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="{x:Type Button}">
-                                            <Border Name="Border"
-                                                    Width="75" Height="24"
-                                                    Background="#80FFFFFF"
-                                                    CornerRadius="12">
-                                                <Border HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Label Name="Label"
-                                                           Padding="0"
-                                                           FontSize="14"
-                                                           FontWeight="UltraBold"
-                                                           Foreground="#FF7862"
-                                                           Content="Cancel"/>
-                                                </Border>
-                                            </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Cursor" Value="Hand" />
-                                                    <Setter TargetName="Border" Property="Background" Value="#D5FFFFFF" />
-                                                </Trigger>
-                                                <MultiTrigger>
-                                                    <MultiTrigger.Conditions>
-                                                        <Condition Property="IsMouseOver" Value="True" />
-                                                        <Condition Property="IsMouseCaptured" Value="True" />
-                                                    </MultiTrigger.Conditions>
-                                                    <Setter TargetName="Label" Property="Control.Foreground" Value="#EE3416" />
-                                                </MultiTrigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </Grid>
-                <DataTemplate.Triggers>
-                    <MultiDataTrigger>
-                        <MultiDataTrigger.Conditions>
-                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}"
-                                Value="True"/>
-                            <Condition Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Processing}"/>
-                        </MultiDataTrigger.Conditions>
-                        <Setter TargetName="cancelButton" Property="Visibility" Value="Visible" />
-                    </MultiDataTrigger>
-                    <DataTrigger Binding="{Binding InSequence}" Value="False">
-                        <Setter TargetName="index" Property="Visibility" Value="Hidden" />
-                    </DataTrigger>
-                    <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Processing}">
-                        <Setter TargetName="progress" Property="Visibility" Value="Visible" />
-                    </DataTrigger>
-                    <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Completed}">
-                        <Setter TargetName="statusIcon" Property="Visibility" Value="Visible" />
-                        <Setter TargetName="statusIcon" Property="Fill" Value="#7ea4ea" />
-                        <Setter TargetName="statusIcon" Property="Data" Value="{StaticResource CompletePathIcon}" />
-                        <Setter TargetName="saveTime" Property="Visibility" Value="Visible" />
-                    </DataTrigger>
-                    <DataTrigger Binding="{Binding Status}" Value="{x:Static local:BackupTaskStatus.Failed}">
-                        <Setter TargetName="index" Property="Visibility" Value="Hidden" />
-                        <Setter TargetName="statusIcon" Property="Visibility" Value="Visible" />
-                        <Setter TargetName="statusIcon" Property="Fill" Value="#ff523b" />
-                        <Setter TargetName="statusIcon" Property="Data" Value="{StaticResource ErrorPathIcon}" />
-                    </DataTrigger>
-                </DataTemplate.Triggers>
-            </DataTemplate>
-
-            <Style x:Key="DirectoryPathTextBox" TargetType="{x:Type local:DirectoryPathTextBox}">
-                <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="TextWrapping" Value="NoWrap"/>
-                <Setter Property="IsReadOnly" Value="True"/>
-                <EventSetter Event="Selected" Handler="DirectoryPathTextBox_Selected"/>
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="ToolTip.IsOpen" Value="True"/>
-                    </Trigger>
-                    <Trigger Property="Validation.HasError" Value="true">
-                        <Setter Property="ToolTipService.ToolTip" Value="{
-                                Binding Path=(Validation.Errors)[0].ErrorContent,
-                                RelativeSource={RelativeSource Self}}"/>
-                        <Setter Property="ToolTip.IsOpen" Value="True"/>
-                        <Setter Property="Background" Value="#FF8888"/>
-                    </Trigger>
-                    <DataTrigger Binding="{Binding SettingLock, Source={x:Static local:StatusHelper.Instance}}" Value="true">
-                        <Setter Property="Foreground" Value="#404040"/>
-                        <Setter Property="Background" Value="#D0D0D0"/>
-                        <Setter Property="Cursor" Value="Arrow"/>
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-
         </Grid.Resources>
         
         <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="30"/>
+            <RowDefinition Height="55"/>
+            <RowDefinition Height="45"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="25"/>
         </Grid.RowDefinitions>
@@ -240,29 +64,64 @@
             <ColumnDefinition Width="150"/>
         </Grid.ColumnDefinitions>
 
-        <StackPanel
+        <!-- バックアップ対象設定 -->
+        <Grid
             Grid.Row="0"
-            Margin="5"
-            Orientation="Horizontal"
-            HorizontalAlignment="Right">
+            Margin="5, 10, 10, 5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="330"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="20"/>
+            </Grid.RowDefinitions>
             <TextBlock
                 TextWrapping="NoWrap"
                 Text="{x:Static properties:Resources.String_Backup_Source}"
                 Margin="5, 0"
                 VerticalAlignment="Center"
                 TextAlignment="Center"/>
-            <local:DirectoryPathTextBox
+            <local:DirectoryPathTextBox Grid.Column="1"
                 Style="{StaticResource DirectoryPathTextBox}"
                 Text="{Binding BackupTargetDir}"
                 Description="{x:Static properties:Resources.String_Select_Backup_Folder}"
-                Width="330"
-                Margin="5, 0"/>
-        </StackPanel>
-        <StackPanel
-            Grid.Row="1"
-            Margin="5"
-            Orientation="Horizontal"
-            HorizontalAlignment="Right">
+                Selected="DirectoryPathTextBox_Selected"/>
+
+            <StackPanel
+                Grid.Row="1" Grid.Column="1"
+                Margin="0, 2"
+                Orientation="Horizontal">
+                <TextBlock
+                    Text="{Binding Source={x:Static properties:Resources.String_Contains}, StringFormat={}{0}:}"/>
+                <TextBlock
+                    Text="{Binding BackupTargetFilesCount, Mode=OneWay, StringFormat={x:Static properties:Resources.StringFormat_Files}}"
+                    Margin="10, 0"/>
+                <TextBlock
+                    Text="{x:Static properties:Resources.String_Size}"
+                    Margin="0, 0, 5, 0"/>
+                <TextBlock>
+                    <TextBlock.Text>
+                        <Binding Path="BackupTargetTotalLength"
+                                 Mode="OneWay"
+                                 Converter="{StaticResource LengthToByteStringConverter}"
+                                 ConverterParameter="{}{0:N1}"/>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StackPanel>
+        </Grid>
+
+        <!-- 保存場所設定 -->
+        <Grid Grid.Row="1"
+            Margin="5, 0, 10, 5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="330"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="20"/>
+            </Grid.RowDefinitions>
             <TextBlock
                 TextWrapping="NoWrap"
                 Text="{x:Static properties:Resources.String_Save_Location}"
@@ -270,21 +129,74 @@
                 Margin="5, 0"
                 VerticalAlignment="Center"
                 TextAlignment="Center"/>
-            <local:DirectoryPathTextBox
+            <local:DirectoryPathTextBox Grid.Column="1"
+                Width="330"
                 Style="{StaticResource DirectoryPathTextBox}"
                 Text="{Binding SaveDir, UpdateSourceTrigger=PropertyChanged}"
                 Description="{x:Static properties:Resources.String_Select_Save_Location}"
-                Width="330"
-                Margin="5, 0"/>
+                Selected="DirectoryPathTextBox_Selected"/>
+        
+            <StackPanel
+                Grid.Row="1"
+                Grid.Column="1"
+                Margin="0, 2"
+                Orientation="Horizontal">
+                <TextBlock
+                    Margin="0, 0, 10, 0"
+                    Text="{Binding Source={x:Static properties:Resources.String_Free_Space}, Mode=OneWay, StringFormat={}{0}:}"/>
+                <TextBlock>
+                    <TextBlock.Text>
+                        <Binding Path="DestinationDriveAvailableFreeSpace"
+                                 Mode="OneWay"
+                                 Converter="{StaticResource LengthToByteStringConverter}"
+                                 ConverterParameter="{}{0:#,0}"/>
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Text=" / "/>
+                <TextBlock>
+                    <TextBlock.Text>
+                        <Binding Path="DestinationDriveTotalSize"
+                                 Mode="OneWay"
+                                 Converter="{StaticResource LengthToByteStringConverter}"
+                                 ConverterParameter="{}{0:#,0}"/>
+                    </TextBlock.Text>
+                </TextBlock>
+                <ProgressBar
+                    Width="100"
+                    Height="8"
+                    Margin="10, 0"
+                    Minimum="0"
+                    Maximum="1"
+                    Foreground="#46ACEC"
+                    Value="{Binding DriveFreeSpacePercentage, Mode=OneWay}"/>
+            </StackPanel>
+        </Grid>
 
-        </StackPanel>
+        <TabControl x:Name="MyTabControl"
+                    Grid.Row="2"
+                    Margin="10, 0, 10, 5">
+            <TabItem Header="{x:Static properties:Resources.String_File_Specific_Settings}">
+                <!-- ファイル個別設定 -->
+                <local:CheckBoxTreeView
+                    BorderThickness="0"
+                    IsEnabled="{Binding SettingLock,
+                        Source={x:Static local:StatusHelper.Instance},
+                        Converter={x:Static local:ReverseBooleanConverter.Instance}}"
+                    ItemsSource="{Binding CBTSource.Children}"/>
 
-        <ListBox Grid.Row="2" Margin="10, 5"
-                 ItemTemplate="{StaticResource BackupHistoryDataTemplate}"
-                 ItemsSource="{Binding Source={StaticResource cvsBackupHistory}}"
-                 ListBoxItem.MouseDoubleClick="BackupHistoryListBox_MouseDoubleClick"
-                 HorizontalContentAlignment="Stretch"/>
+            </TabItem>
+            <TabItem Header="{x:Static properties:Resources.String_Backup_History}">
+                <!-- バックアップ履歴 -->
+                <ListBox
+                    BorderThickness="0"
+                    ItemTemplate="{StaticResource BackupHistoryDataTemplate}"
+                    ItemsSource="{Binding Source={StaticResource cvsBackupHistory}}"
+                    ListBoxItem.MouseDoubleClick="BackupHistoryListBox_MouseDoubleClick"
+                    HorizontalContentAlignment="Stretch"/>
+            </TabItem>
+        </TabControl>
 
+        <!-- 右側設定パネル -->
         <DockPanel
             Grid.Row="0"
             Grid.Column="1"
@@ -330,8 +242,7 @@
                         Content="{x:Static properties:Resources.String_Scheduled_Backup}"
                         Width="120"
                         Margin="5"
-                        IsChecked="{Binding SchedulerEnabled}"
-                        />
+                        IsChecked="{Binding SchedulerEnabled}"/>
 
                     <TextBlock
                         DockPanel.Dock="Top"
@@ -344,8 +255,7 @@
                     <StackPanel
                         DockPanel.Dock="Top"
                         Orientation="Horizontal"
-                        HorizontalAlignment="Center"
-                        >
+                        HorizontalAlignment="Center">
                         <TextBox
                             TextWrapping="NoWrap"
                             TextAlignment="Center"
@@ -356,8 +266,8 @@
                             LostKeyboardFocus="TextBox_LostKeyboardFocus">
                             <TextBox.Text>
                                 <Binding Path="BackupInterval"
-                                         Mode="TwoWay"
-                                         UpdateSourceTrigger="PropertyChanged">
+                                    Mode="TwoWay"
+                                    UpdateSourceTrigger="PropertyChanged">
                                     <Binding.ValidationRules>
                                         <local:PositiveIntegerRule/>
                                     </Binding.ValidationRules>
@@ -372,18 +282,17 @@
                     </StackPanel>
 
                     <TextBlock
-                        DockPanel.Dock="Top"
-                        TextWrapping="Wrap"
-                        Text="{Binding Source={x:Static properties:Resources.String_Maximum_Number_of_Backups}, StringFormat={}{0}:}"
-                        Margin="5"
-                        VerticalAlignment="Center"
-                        TextAlignment="Center"/>
+                            DockPanel.Dock="Top"
+                            TextWrapping="Wrap"
+                            Text="{Binding Source={x:Static properties:Resources.String_Maximum_Number_of_Backups}, StringFormat={}{0}:}"
+                            Margin="5"
+                            VerticalAlignment="Center"
+                            TextAlignment="Center"/>
 
                     <StackPanel
-                        DockPanel.Dock="Top"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Center"
-                        >
+                            DockPanel.Dock="Top"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center">
                         <TextBox
                             TextWrapping="NoWrap"
                             TextAlignment="Center"
@@ -394,9 +303,8 @@
                             LostKeyboardFocus="TextBox_LostKeyboardFocus">
                             <TextBox.Text>
                                 <Binding Path="MaxBackups"
-                                                     Mode="TwoWay"
-                                                     UpdateSourceTrigger="PropertyChanged"
-                                                     >
+                                    Mode="TwoWay"
+                                    UpdateSourceTrigger="PropertyChanged">
                                     <Binding.ValidationRules>
                                         <local:PositiveIntegerRule/>
                                     </Binding.ValidationRules>
@@ -404,16 +312,54 @@
                             </TextBox.Text>
                         </TextBox>
                     </StackPanel>
+
                 </StackPanel>
             </GroupBox>
+
+            <TextBlock
+                    DockPanel.Dock="Top"
+                    TextWrapping="Wrap"
+                    Text="{Binding Source={x:Static properties:Resources.String_Backup_Thread_Priority}, StringFormat={}{0}:}"
+                    Margin="5"
+                    VerticalAlignment="Center"
+                    TextAlignment="Center"/>
+
+            <StackPanel
+                    DockPanel.Dock="Top"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center">
+                <ComboBox
+                    ItemsSource="{Binding Source={local:EnumSource {x:Type local:Priority}}}"
+                    Width="100"
+                    Margin="5"
+                    IsReadOnly="{Binding SettingLock,
+                        Source={x:Static local:StatusHelper.Instance}}"
+                    IsEnabled="{Binding IsReadOnly,
+                        RelativeSource={RelativeSource Self}, Converter={x:Static local:ReverseBooleanConverter.Instance}}">
+                    <ComboBox.SelectedValue>
+                        <Binding Path="Priority"
+                            Mode="TwoWay"
+                            UpdateSourceTrigger="PropertyChanged">
+                        </Binding>
+                    </ComboBox.SelectedValue>
+                    <ComboBox.Style>
+                        <Style>
+                            <Style.Triggers>
+                                <Trigger Property="ComboBox.IsEnabled" Value="False">
+                                    <Setter Property="TextBox.Foreground" Value="#808080"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ComboBox.Style>
+                </ComboBox>
+            </StackPanel>
 
             <Button
                 DockPanel.Dock="Bottom"
                 Content="{x:Static properties:Resources.String_Open_Save_Location}"
                 Width="120"
                 Margin="5"
-                Click="OpenSaveDirButton_Click"
-                />
+                Click="OpenSaveDirButton_Click"/>
             <Button
                 DockPanel.Dock="Bottom"
                 Content="{x:Static properties:Resources.String_Open_Backup_Source_Folder}"

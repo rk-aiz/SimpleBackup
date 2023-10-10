@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Collections.ObjectModel;
+using System.Threading;
 
-namespace SimpleBackup.Models
+namespace SimpleBackup.Helpers
 {
     /// <summary>
     /// ディレクトリのサイズ・ファイル数を累算する
@@ -12,9 +14,13 @@ namespace SimpleBackup.Models
         private long totalSize = 0;
         private int totalCount = 0;
 
-        public DirectoryMeasure(string dirPath)
+        private CancellationToken cToken;
+
+        public DirectoryMeasure(string dirPath, CancellationToken? token = null)
         {
             if (String.IsNullOrEmpty(dirPath)) { return; }
+
+            if (token is CancellationToken ct) { cToken = ct; }
 
             DirectoryInfo di = new DirectoryInfo(dirPath);
             if (!(di.Exists)) { return; }
@@ -43,12 +49,14 @@ namespace SimpleBackup.Models
         {
             foreach (FileInfo fi in di.EnumerateFiles("*"))
             {
+                if (cToken.IsCancellationRequested) { return; }
                 totalSize += fi.Length;
                 totalCount++;
             }
 
             foreach (DirectoryInfo child in di.EnumerateDirectories("*"))
             {
+                if (cToken.IsCancellationRequested) { return; }
                 try
                 {
                     AccumulateChild(child);

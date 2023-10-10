@@ -1,5 +1,4 @@
-﻿using SimpleBackup.Models;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -8,9 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.Windows;
-using static System.Windows.Forms.AxHost;
 using Newtonsoft.Json.Linq;
 using System.Windows.Shapes;
+using SimpleBackup.Commands;
+using System.Windows.Input;
+using System.Data.Common;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace SimpleBackup
 {
@@ -36,6 +39,7 @@ namespace SimpleBackup
         /// バックアップ元・バックアップ保存先が同じ場合、一連のバックアップシークエンスとして扱うためのフラグ
         /// </summary>
         private bool _InSequence = true;
+        [JsonIgnore]
         public bool InSequence
         {
             get { return _InSequence; }
@@ -76,10 +80,16 @@ namespace SimpleBackup
         public BackupTaskStatus Status
         {
             get { return _status; }
-            set { _status = value; OnPropertyChanged("Status"); }
+            set
+            {
+                _status = value;
+                OnPropertyChanged("Status");
+                //((DelegateCommand)CancelCommand).RaiseCanExecuteChanged();
+            }
         }
 
         private int _progress;
+        [JsonIgnore]
         public int Progress
         {
             get { return _progress; }
@@ -93,6 +103,9 @@ namespace SimpleBackup
             }
         }
 
+        [JsonIgnore]
+        public List<FileSystemInfo> TargetItems { get; set; }
+
         //バックアップ処理中のロック
         private CancellationTokenSource cTokenSource;
 
@@ -101,13 +114,15 @@ namespace SimpleBackup
         /// </summary>
         public event BackupCompletedEventHandler BackupCompleted;
 
-        public BackupTask()
+        private ThreadPriority _priority;
+        private string _savePath;
+
+        public BackupTask(ThreadPriority priority)
         {
+            _priority = priority;
             _saveTime = DateTime.Now;
             _status = BackupTaskStatus.Processing;
         }
-
-        private string _savePath;
 
         /// <summary>
         /// バックアップ処理実行
@@ -129,7 +144,7 @@ namespace SimpleBackup
             DirectoryInfo diTarget = new DirectoryInfo(SourcePath);
             cTokenSource = new CancellationTokenSource();
 
-            var zah = new ZipArchiveHelper(diTarget, _savePath, cTokenSource.Token);
+            var zah = new Helpers.ZipArchiveHelper(diTarget, TargetItems, _savePath, cTokenSource.Token);
 
             var dp = Dispatcher.CurrentDispatcher;
             zah.ProgressChanged += (s, e) => dp.InvokeAsync(() => ProgressChangedCallback(s, e));
@@ -140,7 +155,11 @@ namespace SimpleBackup
 
             ts += () => ThreadCompletedCallback();
 
-            Thread thread = new Thread(ts) { IsBackground = true };
+            Thread thread = new Thread(ts)
+            {
+                IsBackground = true,
+                Priority = _priority,
+            };
             thread.Start();
         }
 
@@ -203,6 +222,32 @@ namespace SimpleBackup
         ~BackupTask()
         {
             cTokenSource?.Cancel();
+        }
+
+        private void CancelCommandExecute(object parameter)
+        {
+            RequestCancel();
+        }
+
+        private bool CancelCommandCanExecute(object parameter)
+        {
+            return Status == BackupTaskStatus.Processing;
+        }
+
+        private ICommand _cancelCommand;
+        [JsonIgnore]
+        public ICommand CancelCommand
+        {
+            get
+            {
+                if (_cancelCommand == null)
+                    _cancelCommand = new DelegateCommand
+                    {
+                        ExecuteHandler = CancelCommandExecute,
+                        CanExecuteHandler = CancelCommandCanExecute,
+                    };
+                return _cancelCommand;
+            }
         }
     }
 }

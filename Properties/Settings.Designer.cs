@@ -113,5 +113,17 @@ namespace SimpleBackup.Properties {
                 this["IsFirstRun"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int Thread_Priority {
+            get {
+                return ((int)(this["Thread_Priority"]));
+            }
+            set {
+                this["Thread_Priority"] = value;
+            }
+        }
     }
 }

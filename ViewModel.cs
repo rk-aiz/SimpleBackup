@@ -1,5 +1,4 @@
-﻿using SimpleBackup.Properties;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,11 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Threading;
+using SimpleBackup.Helpers;
+using SimpleBackup.Properties;
+using SimpleBackup.Extensions;
 
 namespace SimpleBackup
 {
     /// <summary>
-    /// MainWindow用ViewModel
+    /// ViewModel for MainWindow
     /// </summary>
     internal class ViewModel : INotifyPropertyChanged
     {
@@ -25,6 +27,9 @@ namespace SimpleBackup
         private ViewModel()
         {
             BindingOperations.EnableCollectionSynchronization(BackupHistory, _backupHistorySync);
+            MeasureBackupTargetDir();
+            UpdateDestinationDirveInfo();
+            LoadBackupHistory();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -73,8 +78,49 @@ namespace SimpleBackup
                     Debug.WriteLine($"BackupTargetDir : {Settings.Default.Target_Directory}");
                     StatusHelper.UpdateStatus($"{LocalizeHelper.GetString("String_Backup_Source")} -> {Settings.Default.Target_Directory}");
                     OnPropertyChanged("BackupTargetDir");
-                    ResetSequence();
+                    SaveBackupHistory();
+                    MeasureBackupTargetDir();
+                    LoadBackupHistory();
                 }
+            }
+        }
+
+        private long _backupTargetTotalLength;
+        public long BackupTargetTotalLength
+        {
+            get { return _backupTargetTotalLength; }
+            set { _backupTargetTotalLength  = value; OnPropertyChanged("BackupTargetTotalLength"); }
+        }
+
+        private int _backupTargetFilesCount;
+        public int BackupTargetFilesCount
+        {
+            get { return _backupTargetFilesCount; }
+            set { _backupTargetFilesCount = value; OnPropertyChanged("BackupTargetFilesCount"); }
+        }
+
+        private long _destinationDriveTotalSize;
+        public long DestinationDriveTotalSize
+        {
+            get { return _destinationDriveTotalSize; }
+            set { _destinationDriveTotalSize = value; OnPropertyChanged("DestinationDriveTotalSize"); }
+        }
+
+        private long _destinationDriveAvailableFreeSpace;
+        public long DestinationDriveAvailableFreeSpace
+        {
+            get { return _destinationDriveAvailableFreeSpace; }
+            set { _destinationDriveAvailableFreeSpace = value; OnPropertyChanged("DestinationDriveAvailableFreeSpace"); }
+        }
+
+        public FileSystemTreeNode CBTSource { get; } = new FileSystemTreeNode();
+
+        public double DriveFreeSpacePercentage
+        {
+            get
+            {
+                var val = 1.0 - ((float)_destinationDriveAvailableFreeSpace / (float)_destinationDriveTotalSize);
+                return val;
             }
         }
 
@@ -91,7 +137,7 @@ namespace SimpleBackup
                     Debug.WriteLine($"SaveDir : {Settings.Default.Save_Directory}");
                     OnPropertyChanged("SaveDir");
                     LoadBackupHistory();
-                    ResetSequence();
+                    UpdateDestinationDirveInfo();
                 }
             }
         }
@@ -130,15 +176,16 @@ namespace SimpleBackup
             }
         }
 
-        public ProcessPriorityClass ProcessPriority
+        public Priority Priority
         {
             get
             {
-                return Process.GetCurrentProcess().PriorityClass;
+                return (Priority)Settings.Default.Thread_Priority;
             }
             set
             {
-                Process.GetCurrentProcess().PriorityClass = value;
+                Debug.WriteLine(value);
+                Settings.Default.Thread_Priority = (int)value; OnPropertyChanged("Priority");
             }
         }
 
@@ -159,6 +206,48 @@ namespace SimpleBackup
             {
                 _backupScheduler?.StopTimer();
                 _backupScheduler = value;
+            }
+        }
+
+        private CancellationTokenSource _measureBTDirCancelTSource;
+        private async void MeasureBackupTargetDir()
+        {
+            _measureBTDirCancelTSource?.Cancel();
+            _measureBTDirCancelTSource = new CancellationTokenSource();
+            var task = Task.Run(() =>
+            {
+                var dm = new DirectoryMeasure(BackupTargetDir, _measureBTDirCancelTSource.Token);
+                BackupTargetTotalLength = dm.GetTotalSize();
+                BackupTargetFilesCount = dm.GetTotalCount();
+            }, _measureBTDirCancelTSource.Token);
+
+            //Debug.WriteLine($"MeasureBackupTargetDir {CBTSource.Children.Count}");
+            await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
+            {
+                if (Directory.Exists(BackupTargetDir))
+                {
+                    CBTSource.Name = BackupTargetDir;
+                    CBTSource.IsChecked = true;
+                    CBTSource.GetChildren(new DirectoryInfo(BackupTargetDir));
+
+                }
+            });
+            await task;
+        }
+
+        private void UpdateDestinationDirveInfo()
+        {
+            try
+            {
+                var dirInfo = new DirectoryInfo(SaveDir);
+                var driveInfo = new DriveInfo(dirInfo.Root.Name);
+                DestinationDriveTotalSize = driveInfo.TotalSize;
+                DestinationDriveAvailableFreeSpace = driveInfo.AvailableFreeSpace;
+                OnPropertyChanged("DriveFreeSpacePercentage");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
             }
         }
 
@@ -195,10 +284,12 @@ namespace SimpleBackup
                         });
 
                         Parallel.ForEach(li, entry => RemoveBackup(entry, true));
-                        JsonHelper.SerializeToFile(BackupHistory, SaveDir);
+                        SaveBackupHistory();
                     }
                 }
             });
+
+            UpdateDestinationDirveInfo();
         }
 
         public void CreateBackupTask()
@@ -230,7 +321,7 @@ namespace SimpleBackup
 
             RemoveFailedBackup();
 
-            BackupTask bt = new BackupTask
+            BackupTask bt = new BackupTask((ThreadPriority)Priority)
             {
                 Index = -1,
                 SourcePath = sourcePath,
@@ -239,7 +330,7 @@ namespace SimpleBackup
                 InSequence = true
             };
             bt.BackupCompleted += new BackupCompletedEventHandler(BackupTask_Completed);
-            await Task.Run(() =>
+            var task = Task.Run(() =>
             {
                 lock (_backupHistoryLockObj)
                 {
@@ -247,6 +338,10 @@ namespace SimpleBackup
                 }
             });
 
+            //バックアップ項目をリストアップ
+            bt.TargetItems = await Dispatcher.CurrentDispatcher.InvokeAsync(() => CBTSource.GetCheckedItems());
+
+            await task;
             bt.Backup();
         }
 
@@ -298,23 +393,50 @@ namespace SimpleBackup
             }
         }
 
+        /// <summary>
+        /// Jsonファイルからバックアップ履歴とファイル別設定を読み込みます
+        /// </summary>
         public async void LoadBackupHistory()
         {
-            var loadedCollection = await JsonHelper.DeserializeFromFile<List<BackupTask>>(SaveDir);
+            if (SaveDir == null) { return; }
 
-            if (loadedCollection?.Count >= 1)
+            var jsObj = new JsonObject();
+            try
             {
-                await Task.Run(() =>
+                await jsObj.DeserializeFromFileAsync(SaveDir);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+
+            if (jsObj.BackupHistory?.Count >= 1)
+            {
+                await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
                 {
                     lock (_backupHistoryLockObj)
                     {
                         BackupHistory.Clear();
-                        BackupHistory.AddRange(loadedCollection);
+                        BackupHistory.AddRange(jsObj.BackupHistory);
                     }
                 });
             }
-
             ResetSequence();
+
+            CBTSource.SetIgnoreItems(jsObj.IgnoreItems);
+        }
+
+        /// <summary>
+        /// Jsonファイルにバックアップ履歴とファイル別設定を書き込みます
+        /// </summary>
+        public async void SaveBackupHistory()
+        {
+            var jsObj = new JsonObject();
+            jsObj.BackupHistory = new List<BackupTask>(BackupHistory);
+            jsObj.IgnoreItems = CBTSource.GetIgnoreItems();
+
+            //foreach (var item in jsObj.IgnoreItems) { Debug.WriteLine(item); }
+            await jsObj.SerializeToFileAsync(SaveDir);
         }
 
         private void ResetSequence()

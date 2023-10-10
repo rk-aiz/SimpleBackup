@@ -61,6 +61,24 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Above Normal に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Above_Normal {
+            get {
+                return ResourceManager.GetString("String_Above_Normal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Backup History に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Backup_History {
+            get {
+                return ResourceManager.GetString("String_Backup_History", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Backup Interval に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Backup_Interval {
@@ -124,6 +142,24 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Backup Thread Priority に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Backup_Thread_Priority {
+            get {
+                return ResourceManager.GetString("String_Backup_Thread_Priority", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Below Normal に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Below_Normal {
+            get {
+                return ResourceManager.GetString("String_Below_Normal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Completed に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Completed {
@@ -133,11 +169,56 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Contains に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Contains {
+            get {
+                return ResourceManager.GetString("String_Contains", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Failed に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Failed {
             get {
                 return ResourceManager.GetString("String_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   FileSpecific Settings に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_File_Specific_Settings {
+            get {
+                return ResourceManager.GetString("String_File_Specific_Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Free Space に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Free_Space {
+            get {
+                return ResourceManager.GetString("String_Free_Space", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Highest に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Highest {
+            get {
+                return ResourceManager.GetString("String_Highest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Lowest に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Lowest {
+            get {
+                return ResourceManager.GetString("String_Lowest", resourceCulture);
             }
         }
         
@@ -156,6 +237,15 @@ namespace SimpleBackup.Properties {
         public static string String_Min {
             get {
                 return ResourceManager.GetString("String_Min", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Normal に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Normal {
+            get {
+                return ResourceManager.GetString("String_Normal", resourceCulture);
             }
         }
         
@@ -264,6 +354,24 @@ namespace SimpleBackup.Properties {
         public static string String_Select_Save_Location {
             get {
                 return ResourceManager.GetString("String_Select_Save_Location", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Size に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Size {
+            get {
+                return ResourceManager.GetString("String_Size", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   {0} Files に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string StringFormat_Files {
+            get {
+                return ResourceManager.GetString("StringFormat_Files", resourceCulture);
             }
         }
     }

@@ -116,12 +116,21 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Extensions\FileSystemInfoExtensions.cs" />
+    <Compile Include="FileSystemTreeNode.cs" />
+    <Compile Include="CheckBoxTreeView.xaml.cs">
+      <DependentUpon>CheckBoxTreeView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Commands\DelegateCommand.cs" />
     <Compile Include="DirectoryCleaning.cs" />
-    <Compile Include="JsonHelper.cs" />
-    <Compile Include="Models\CofDialogHelper.cs" />
-    <Compile Include="Models\DirectoryMeasure.cs" />
+    <Compile Include="EnumSource.cs" />
+    <Compile Include="Helpers\JsonHelper.cs" />
+    <Compile Include="Helpers\CofDialogHelper.cs" />
+    <Compile Include="Helpers\DirectoryMeasure.cs" />
     <Compile Include="DirectoryPathTextBox.cs" />
-    <Compile Include="ObservableCollectionExtensions.cs" />
+    <Compile Include="Helpers\JsonObject.cs" />
+    <Compile Include="Helpers\StorageMeasure.cs" />
+    <Compile Include="Extensions\ObservableCollectionExtensions.cs" />
     <Compile Include="ProgressChangedEventArgs.cs" />
     <Compile Include="Properties\Resources.ja-JP1.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -136,7 +145,11 @@
     <Compile Include="StatusHelper.cs" />
     <Compile Include="ValidationRules.cs" />
     <Compile Include="ViewModel.cs" />
-    <Compile Include="Models\ZipArchiveHelper.cs" />
+    <Compile Include="Helpers\ZipArchiveHelper.cs" />
+    <Page Include="CheckBoxTreeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -157,7 +170,7 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="SliderButtonDictionary.xaml">
+    <Page Include="ResourceDictionary.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -200,8 +213,6 @@
   <ItemGroup>
     <Resource Include="icon.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Helper\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

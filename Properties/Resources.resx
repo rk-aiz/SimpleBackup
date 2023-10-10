@@ -117,6 +117,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="StringFormat_Files" xml:space="preserve">
+    <value>{0} Files</value>
+  </data>
+  <data name="String_Above_Normal" xml:space="preserve">
+    <value>Above Normal</value>
+  </data>
+  <data name="String_Backup_History" xml:space="preserve">
+    <value>Backup History</value>
+  </data>
   <data name="String_Backup_Interval" xml:space="preserve">
     <value>Backup Interval</value>
   </data>
@@ -138,17 +147,41 @@
   <data name="String_Backup_target_does_not_exist" xml:space="preserve">
     <value>The process was canceled because the backup target does not exist.</value>
   </data>
+  <data name="String_Backup_Thread_Priority" xml:space="preserve">
+    <value>Backup Thread Priority</value>
+  </data>
+  <data name="String_Below_Normal" xml:space="preserve">
+    <value>Below Normal</value>
+  </data>
   <data name="String_Completed" xml:space="preserve">
     <value>Completed</value>
   </data>
+  <data name="String_Contains" xml:space="preserve">
+    <value>Contains</value>
+  </data>
   <data name="String_Failed" xml:space="preserve">
     <value>Failed</value>
+  </data>
+  <data name="String_File_Specific_Settings" xml:space="preserve">
+    <value>FileSpecific Settings</value>
+  </data>
+  <data name="String_Free_Space" xml:space="preserve">
+    <value>Free Space</value>
+  </data>
+  <data name="String_Highest" xml:space="preserve">
+    <value>Highest</value>
+  </data>
+  <data name="String_Lowest" xml:space="preserve">
+    <value>Lowest</value>
   </data>
   <data name="String_Maximum_Number_of_Backups" xml:space="preserve">
     <value>Maximum Number of Backups</value>
   </data>
   <data name="String_Min" xml:space="preserve">
     <value>Min</value>
+  </data>
+  <data name="String_Normal" xml:space="preserve">
+    <value>Normal</value>
   </data>
   <data name="String_Off" xml:space="preserve">
     <value>Off</value>
@@ -185,5 +218,8 @@
   </data>
   <data name="String_Select_Save_Location" xml:space="preserve">
     <value>Select a location where to save the backup.</value>
+  </data>
+  <data name="String_Size" xml:space="preserve">
+    <value>Size</value>
   </data>
 </root>

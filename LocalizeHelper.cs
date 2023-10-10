@@ -24,4 +24,24 @@ namespace SimpleBackup
         typeof(SimpleBackup.Properties.Resources))]
         On,
     }
+
+    [TypeConverter(typeof(EnumDescriptionTypeConverter))]
+    public enum Priority
+    {
+        [LocalizedDescription("String_Lowest",
+            typeof(SimpleBackup.Properties.Resources))]
+            Lowest,
+        [LocalizedDescription("String_Below_Normal",
+            typeof(SimpleBackup.Properties.Resources))]
+            BelowNormal,
+        [LocalizedDescription("String_Normal",
+            typeof(SimpleBackup.Properties.Resources))]
+            Normal,
+        [LocalizedDescription("String_Above_Normal",
+            typeof(SimpleBackup.Properties.Resources))]
+            AboveNormal,
+        [LocalizedDescription("String_Highest",
+            typeof(SimpleBackup.Properties.Resources))]
+            Highest
+    }
 }

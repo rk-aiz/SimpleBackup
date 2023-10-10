@@ -2,7 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Reflection;
 
-namespace SimpleBackup
+namespace SimpleBackup.Extensions
 {
     internal static class ObservableCollectionExtensions
     {

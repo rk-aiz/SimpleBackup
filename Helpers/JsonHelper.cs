@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace SimpleBackup
+namespace SimpleBackup.Helpers
 {
     internal static class JsonHelper
     {
