@@ -153,6 +153,9 @@
   <data name="String_Below_Normal" xml:space="preserve">
     <value>Below Normal</value>
   </data>
+  <data name="String_Check_All" xml:space="preserve">
+    <value>Check all</value>
+  </data>
   <data name="String_Completed" xml:space="preserve">
     <value>Completed</value>
   </data>
@@ -204,6 +207,9 @@
   <data name="String_Ready" xml:space="preserve">
     <value>Ready</value>
   </data>
+  <data name="String_Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
   <data name="String_Save_Location" xml:space="preserve">
     <value>Save Location</value>
   </data>
@@ -221,5 +227,8 @@
   </data>
   <data name="String_Size" xml:space="preserve">
     <value>Size</value>
+  </data>
+  <data name="String_Uncheck_All" xml:space="preserve">
+    <value>Uncheck all</value>
   </data>
 </root>

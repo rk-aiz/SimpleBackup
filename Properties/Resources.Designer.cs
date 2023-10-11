@@ -160,6 +160,15 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Check all に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Check_All {
+            get {
+                return ResourceManager.GetString("String_Check_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Completed に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Completed {
@@ -313,6 +322,15 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Refresh に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Refresh {
+            get {
+                return ResourceManager.GetString("String_Refresh", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Save Location に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Save_Location {
@@ -363,6 +381,15 @@ namespace SimpleBackup.Properties {
         public static string String_Size {
             get {
                 return ResourceManager.GetString("String_Size", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Uncheck all に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Uncheck_All {
+            get {
+                return ResourceManager.GetString("String_Uncheck_All", resourceCulture);
             }
         }
         

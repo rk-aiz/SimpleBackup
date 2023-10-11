@@ -20,6 +20,7 @@ namespace SimpleBackup
         private FileSystemTreeNode _Parent = null;
         private ObservableCollection<FileSystemTreeNode> _Children = null;
         private FileAttributes _Attributes = FileAttributes.Normal;
+        public bool NotDummy { get; set; } = true;
 
         public bool IsExpanded
         {
@@ -156,16 +157,16 @@ namespace SimpleBackup
             else
                 path = Path.Combine(Parent.GetPath(), Name);
 
-            if (withDirectorySeparatorChar &&
-                File.GetAttributes(path).HasFlag(FileAttributes.Directory) &&
-                Name.LastOrDefault() != Path.DirectorySeparatorChar)
+            if (withDirectorySeparatorChar)
             {
-                return path + Path.DirectorySeparatorChar.ToString();
+                if (File.GetAttributes(path).HasFlag(FileAttributes.Directory) &&
+                    Name.LastOrDefault() != Path.DirectorySeparatorChar)
+                {
+                    return path + Path.DirectorySeparatorChar.ToString();
+                }
             }
-            else
-            {
-                return path;
-            }
+
+            return path;
         }
 
         /// <summary>
@@ -210,7 +211,7 @@ namespace SimpleBackup
                         Parent = this
                     };
                     //子にダミーを追加してExpand可能にする
-                    node.Add(new DummyFileSystemTreeNode());
+                    node.Add(new FileSystemTreeNode() { NotDummy = false });
                     list.Add(node);
                 }
                 catch (Exception ex)
@@ -233,6 +234,7 @@ namespace SimpleBackup
         /// <returns></returns>
         public List<string> GetIgnoreItems()
         {
+            Debug.WriteLine($"GetIgnoreItems : {GetPath()}");
             return GetIgnoreItemsCore(this);
         }
 
@@ -310,64 +312,75 @@ namespace SimpleBackup
             {
                 try
                 {
-                    TrySetIgnore(item, false);
+                    TrySetIgnore(this, item, false);
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
+                }
             }
         }
 
-        public bool TrySetIgnore(string path, bool value)
+        public static void TrySetIgnore(FileSystemTreeNode node, string path, bool value)
         {
-            if (path.IndexOf(GetPath(), StringComparison.OrdinalIgnoreCase) == 0)
+            if (path.IndexOf(node.GetPath(), StringComparison.OrdinalIgnoreCase) == 0)
             {
-                string relativePath;
-                try
-                {
-                    relativePath = path.Remove(0, GetPath(true).Length);
-                }
-                catch
-                { 
-                    return false;
-                }
+                string relativePath = path.Remove(0, node.GetPath(true).Length);
+
                 if (relativePath == Path.DirectorySeparatorChar.ToString() ||
                     String.IsNullOrEmpty(relativePath))
                 {
-                    IsChecked = value;
-                    UpdateParentStatus();
-                    UpdateChildStatus();
-                    return true;
+                    node.IsChecked = value;
+                    node.UpdateChildStatus();
+                    node.UpdateParentStatus();
+                    return;
                 }
                 else
                 {
                     if (relativePath.Split(Path.DirectorySeparatorChar).First() is string nextNode)
                     {
-                        if (CheckHaveDummy()) { GetChildren(new DirectoryInfo(GetPath())); }
-                        return Children?.Where(node => node.Name == nextNode).First()?.TrySetIgnore(path, value) ?? false;
+                        if (node.CheckHaveDummy()) { node.GetChildren(new DirectoryInfo(node.GetPath())); }
+                        foreach (var child in node.Children)
+                        {
+                            if (child.Name == nextNode)
+                            {
+                                TrySetIgnore(child, path, value);
+                                return;
+                            }
+                        }
                     }
                     else
                     {
-                        return false;
+                        return;
                     }
                 }
             }
-            else
-                return false;
         }
 
         public bool CheckHaveDummy()
         {
-            if (Children?.FirstOrDefault() is DummyFileSystemTreeNode)
+            if (Children?.FirstOrDefault()?.NotDummy == false)
                 return true;
             else
                 return false;
         }
-    }
 
-    class DummyFileSystemTreeNode : FileSystemTreeNode
-    {
-        public DummyFileSystemTreeNode()
+        public void CheckAll()
         {
+            foreach (var child in Children)
+            {
+                child.IsChecked = true;
+                child.UpdateChildStatus();
+            }
+        }
 
+        public void UncheckAll()
+        {
+            foreach (var child in Children)
+            {
+                child.IsChecked = false;
+                child.UpdateChildStatus();
+            }
         }
     }
 }

@@ -174,16 +174,47 @@
 
         <TabControl x:Name="MyTabControl"
                     Grid.Row="2"
+                    Padding="0"
                     Margin="10, 0, 10, 5">
             <TabItem Header="{x:Static properties:Resources.String_File_Specific_Settings}">
-                <!-- ファイル個別設定 -->
-                <local:CheckBoxTreeView
-                    BorderThickness="0"
-                    IsEnabled="{Binding SettingLock,
-                        Source={x:Static local:StatusHelper.Instance},
-                        Converter={x:Static local:ReverseBooleanConverter.Instance}}"
-                    ItemsSource="{Binding CBTSource.Children}"/>
-
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel.Resources>
+                            <Style TargetType="{x:Type Button}">
+                                <Setter Property="Width" Value="100"/>
+                                <Setter Property="Height" Value="18"/>
+                                <Setter Property="Margin" Value="5"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            </Style>
+                        </StackPanel.Resources>
+                        <Button
+                            Content="{x:Static properties:Resources.String_Check_All}"
+                            Click="CheckAllButton_Click"/>
+                        <Button
+                            Content="{x:Static properties:Resources.String_Uncheck_All}"
+                            Click="UncheckAllButton_Click"/>
+                        <Button
+                            Content="{x:Static properties:Resources.String_Refresh}"
+                            Click="RefreshButton_Click"/>
+                    </StackPanel>
+                    <!-- ファイル個別設定 -->
+                    <local:CheckBoxTreeView
+                        Grid.Row="1"
+                        BorderThickness="0, 1, 0, 0"
+                        BorderBrush="#B0B0B0"
+                        IsEnabled="{Binding SettingLock,
+                            Source={x:Static local:StatusHelper.Instance},
+                            Converter={x:Static local:ReverseBooleanConverter.Instance}}"
+                        ItemsSource="{Binding CBTSource.Children}"/>
+                </Grid>
             </TabItem>
             <TabItem Header="{x:Static properties:Resources.String_Backup_History}">
                 <!-- バックアップ履歴 -->

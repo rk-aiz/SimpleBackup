@@ -10,10 +10,11 @@
         <Style TargetType="TreeViewItem">
             <Setter Property="IsExpanded" Value="{Binding Path=IsExpanded,Mode=TwoWay}"/>
         </Style>
+        <BooleanToVisibilityConverter x:Key="BoolVisibilityConverter" />
     </TreeView.Resources>
     <TreeView.ItemTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:FileSystemTreeNode}" ItemsSource="{Binding Children}">
-            <CheckBox Margin="1" IsChecked="{Binding IsChecked}">
+            <CheckBox Margin="1" IsChecked="{Binding IsChecked}" Visibility="{Binding NotDummy, Converter={StaticResource BoolVisibilityConverter}}">
                 <TextBlock Text="{Binding Name}"/>
             </CheckBox>
         </HierarchicalDataTemplate>

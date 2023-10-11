@@ -124,6 +124,7 @@
     <Compile Include="Commands\DelegateCommand.cs" />
     <Compile Include="DirectoryCleaning.cs" />
     <Compile Include="EnumSource.cs" />
+    <Compile Include="Helpers\DispatcherHelper.cs" />
     <Compile Include="Helpers\JsonHelper.cs" />
     <Compile Include="Helpers\CofDialogHelper.cs" />
     <Compile Include="Helpers\DirectoryMeasure.cs" />

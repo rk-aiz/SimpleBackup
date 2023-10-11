@@ -137,5 +137,20 @@ namespace SimpleBackup
             var be = BindingOperations.GetBindingExpression(tb, TextBox.TextProperty);
             if (be?.HasError == false) { be?.UpdateSource(); }
         }
+
+        private void UncheckAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            _vm.CBTSource.UncheckAll();
+        }
+
+        private void CheckAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            _vm.CBTSource.CheckAll();
+        }
+
+        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            _vm.Refresh();
+        }
     }
 }

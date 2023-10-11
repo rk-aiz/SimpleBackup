@@ -210,6 +210,7 @@ namespace SimpleBackup
         }
 
         private CancellationTokenSource _measureBTDirCancelTSource;
+
         private async void MeasureBackupTargetDir()
         {
             _measureBTDirCancelTSource?.Cancel();
@@ -313,7 +314,7 @@ namespace SimpleBackup
                 return;
             }
 
-            var saveName = $"{Path.GetFileName(sourcePath)}-{DateTime.Now:yyyyMMdd-hh-mm-ss}.zip";
+            var saveName = $"{Path.GetFileName(sourcePath)}-{DateTime.Now:yyyyMMdd-HH-mm-ss}.zip";
             var savePath = System.IO.Path.Combine(saveDir, saveName);
 
             //同名バックアップファイルが既に存在する場合中止
@@ -484,5 +485,18 @@ namespace SimpleBackup
                 }
             }
         }
+
+        public void Refresh()
+        {
+            var ignoreItems = CBTSource.GetIgnoreItems();
+            MeasureBackupTargetDir();
+            UpdateDestinationDirveInfo();
+
+            DispatcherHelper.DoEvents();
+
+            CBTSource.SetIgnoreItems(ignoreItems);
+        }
+
+
     }
 }

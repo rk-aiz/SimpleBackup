@@ -153,6 +153,9 @@
   <data name="String_Below_Normal" xml:space="preserve">
     <value>通常以下</value>
   </data>
+  <data name="String_Check_All" xml:space="preserve">
+    <value>全てチェック</value>
+  </data>
   <data name="String_Completed" xml:space="preserve">
     <value>完了</value>
   </data>
@@ -204,6 +207,9 @@
   <data name="String_Ready" xml:space="preserve">
     <value>準備完了</value>
   </data>
+  <data name="String_Refresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
   <data name="String_Save_Location" xml:space="preserve">
     <value>保存場所</value>
   </data>
@@ -221,5 +227,8 @@
   </data>
   <data name="String_Size" xml:space="preserve">
     <value>サイズ</value>
+  </data>
+  <data name="String_Uncheck_All" xml:space="preserve">
+    <value>全てチェック解除</value>
   </data>
 </root>
