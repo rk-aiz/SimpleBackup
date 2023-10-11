@@ -116,6 +116,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Events\DirectoryMeasureUpdatedEvent.cs" />
     <Compile Include="Extensions\FileSystemInfoExtensions.cs" />
     <Compile Include="FileSystemTreeNode.cs" />
     <Compile Include="CheckBoxTreeView.xaml.cs">
@@ -160,7 +161,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="BackupCompletedEventArgs.cs" />
+    <Compile Include="Events\BackupCompletedEvent.cs" />
     <Compile Include="BackupTask.cs" />
     <Compile Include="BackupScheduler.cs" />
     <Compile Include="Converters.cs" />

@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Data.Common;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using SimpleBackup.Events;
 
 namespace SimpleBackup
 {
@@ -206,7 +207,7 @@ namespace SimpleBackup
 
         private void OnBackupCompleted()
         {
-            BackupCompleted?.Invoke(this, new BackupCompletedEventArgs(this));
+            BackupCompleted?.Invoke(this, new BackupCompletedEvent(this));
         }
 
         protected void OnPropertyChanged(string propertyName)

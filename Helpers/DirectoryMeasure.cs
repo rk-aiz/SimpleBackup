@@ -1,8 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Linq;
+using System.Collections;
+using System.Security.AccessControl;
+using System.Security.Principal;
+using SimpleBackup.Events;
 
 namespace SimpleBackup.Helpers
 {
@@ -11,19 +18,36 @@ namespace SimpleBackup.Helpers
     /// </summary>
     internal class DirectoryMeasure
     {
-        private long totalSize = 0;
-        private int totalCount = 0;
+        private long _totalSize = 0;
+        private int _totalCount = 0;
+        private int _maxThread = 8;
+        private int _thread = 0;
+        //private ParallelOptions _pOptions = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
+
+        public event DirectoryMeasureUpdatedEventHandler DirectoryMeasureUpdated;
 
         private CancellationToken cToken;
 
-        public DirectoryMeasure(string dirPath, CancellationToken? token = null)
+        public DirectoryMeasure(string dirPath, CancellationToken? token = null, DirectoryMeasureUpdatedEventHandler updateCallback = null)
         {
             if (String.IsNullOrEmpty(dirPath)) { return; }
 
-            if (token is CancellationToken ct) { cToken = ct; }
+            if (token is CancellationToken ct)
+            {
+                cToken = ct;
+                //_pOptions.CancellationToken = ct;
+            }
+
+            if (updateCallback != null)
+            {
+                DirectoryMeasureUpdated += updateCallback;
+            }
 
             DirectoryInfo di = new DirectoryInfo(dirPath);
             if (!(di.Exists)) { return; }
+
+            _maxThread = Environment.ProcessorCount;
+            //_pOptions.MaxDegreeOfParallelism = Environment.ProcessorCount; // 最大実行数
 
             try
             {
@@ -35,36 +59,66 @@ namespace SimpleBackup.Helpers
             }
         }
 
+        private void updateCallback(object sender, DirectoryMeasureUpdatedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         public long GetTotalSize()
         {
-            return totalSize;
+            return _totalSize;
         }
 
         public int GetTotalCount()
         {
-            return totalCount;
+            return _totalCount;
         }
 
         public void AccumulateChild(DirectoryInfo di)
         {
-            foreach (FileInfo fi in di.EnumerateFiles("*"))
-            {
-                if (cToken.IsCancellationRequested) { return; }
-                totalSize += fi.Length;
-                totalCount++;
-            }
+            if (cToken.IsCancellationRequested) { return; }
 
-            foreach (DirectoryInfo child in di.EnumerateDirectories("*"))
+            Interlocked.Add(ref _totalSize, di.EnumerateFiles().Select(fi => fi.Length).Sum());
+            Interlocked.Add(ref _totalCount, di.EnumerateFiles().Count());
+
+            OnUpdateDirectoryMeasure();
+
+            IEnumerable<DirectoryInfo> directories = di.EnumerateDirectories();
+
+            if (directories.Take(2)?.Count() > 1 && _thread <= _maxThread)
             {
-                if (cToken.IsCancellationRequested) { return; }
-                try
+                Parallel.ForEach(directories, child =>
                 {
-                    AccumulateChild(child);
-                }
-                catch (Exception ex)
+                    Interlocked.Increment(ref _thread);
+                    try
+                    {
+                        AccumulateChild(child);
+                    }
+                    catch { }
+                    Interlocked.Decrement(ref _thread);
+                });
+            }
+            else
+            {
+                foreach (DirectoryInfo child in directories)
                 {
-                    Debug.WriteLine(ex);
+                    try
+                    {
+                        AccumulateChild(child);
+                    }
+                    catch { }
                 }
+            }
+        }
+
+        private DateTime _lastUpdateTime = DateTime.MinValue;
+        private TimeSpan _updateThreashold = TimeSpan.FromSeconds(2);
+        private void OnUpdateDirectoryMeasure()
+        {
+            if (DateTime.Now - _lastUpdateTime > _updateThreashold)
+            {
+                _lastUpdateTime = DateTime.Now;
+                DirectoryMeasureUpdated?.Invoke(this, new DirectoryMeasureUpdatedEventArgs(_totalSize, _totalCount));
             }
         }
     }

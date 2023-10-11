@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Threading;
+using SimpleBackup.Events;
 using SimpleBackup.Helpers;
 using SimpleBackup.Properties;
 using SimpleBackup.Extensions;
@@ -217,7 +218,11 @@ namespace SimpleBackup
             _measureBTDirCancelTSource = new CancellationTokenSource();
             var task = Task.Run(() =>
             {
-                var dm = new DirectoryMeasure(BackupTargetDir, _measureBTDirCancelTSource.Token);
+                var dm = new DirectoryMeasure(BackupTargetDir, _measureBTDirCancelTSource.Token, (sender, e) =>
+                {
+                    BackupTargetTotalLength = e.NewLength;
+                    BackupTargetFilesCount = e.NewCount;
+                });
                 BackupTargetTotalLength = dm.GetTotalSize();
                 BackupTargetFilesCount = dm.GetTotalCount();
             }, _measureBTDirCancelTSource.Token);
@@ -230,7 +235,6 @@ namespace SimpleBackup
                     CBTSource.Name = BackupTargetDir;
                     CBTSource.IsChecked = true;
                     CBTSource.GetChildren(new DirectoryInfo(BackupTargetDir));
-
                 }
             });
             await task;
@@ -252,7 +256,7 @@ namespace SimpleBackup
             }
         }
 
-        private async void BackupTask_Completed(object sender, BackupCompletedEventArgs e)
+        private async void BackupTask_Completed(object sender, BackupCompletedEvent e)
         {
             if (e.BackupTask.Status == BackupTaskStatus.Failed)
             {
