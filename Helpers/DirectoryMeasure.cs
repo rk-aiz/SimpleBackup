@@ -95,7 +95,6 @@ namespace SimpleBackup.Helpers
                         AccumulateChild(child);
                     }
                     catch { }
-                    Interlocked.Decrement(ref _thread);
                 });
             }
             else

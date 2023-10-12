@@ -172,7 +172,7 @@
             </StackPanel>
         </Grid>
 
-        <TabControl x:Name="MyTabControl"
+        <TabControl x:Name="TabControl"
                     Grid.Row="2"
                     Padding="0"
                     Margin="10, 0, 10, 5">

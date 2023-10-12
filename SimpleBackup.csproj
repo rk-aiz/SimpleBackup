@@ -131,9 +131,8 @@
     <Compile Include="Helpers\DirectoryMeasure.cs" />
     <Compile Include="DirectoryPathTextBox.cs" />
     <Compile Include="Helpers\JsonObject.cs" />
-    <Compile Include="Helpers\StorageMeasure.cs" />
     <Compile Include="Extensions\ObservableCollectionExtensions.cs" />
-    <Compile Include="ProgressChangedEventArgs.cs" />
+    <Compile Include="Events\ProgressChangedEvent.cs" />
     <Compile Include="Properties\Resources.ja-JP1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -215,6 +214,8 @@
   <ItemGroup>
     <Resource Include="icon.ico" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="View\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SimpleBackup
+namespace SimpleBackup.Events
 {
     internal delegate void ProgressChangedEventHandler(object sender, ProgressChangedEventArgs e);
 

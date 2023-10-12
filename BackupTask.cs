@@ -200,7 +200,7 @@ namespace SimpleBackup
             Debug.WriteLine($"Backup -> {_savePath}");
         }
 
-        private void ProgressChangedCallback(object sender, ProgressChangedEventArgs e)
+        private void ProgressChangedCallback(object sender, SimpleBackup.Events.ProgressChangedEventArgs e)
         {
             Progress = e.Progress;
         }

@@ -9,15 +9,14 @@ namespace SimpleBackup.Helpers
 {
     internal static class DispatcherHelper
     {
-        public static void DoEvents()
+        public static void DoEvents(this Dispatcher dp, DispatcherPriority priority = DispatcherPriority.Background)
         {
             DispatcherFrame frame = new DispatcherFrame();
-            var callback = new DispatcherOperationCallback(obj =>
+            dp.BeginInvoke(priority, new DispatcherOperationCallback(obj =>
             {
                 ((DispatcherFrame)obj).Continue = false;
                 return null;
-            });
-            Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, callback, frame);
+            }), frame);
             Dispatcher.PushFrame(frame);
         }
     }

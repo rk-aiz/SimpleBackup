@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Diagnostics;
 using System.Collections.Generic;
+using SimpleBackup.Events;
 
 namespace SimpleBackup.Helpers
 {

@@ -14,6 +14,7 @@ using SimpleBackup.Events;
 using SimpleBackup.Helpers;
 using SimpleBackup.Properties;
 using SimpleBackup.Extensions;
+using System.Windows.Documents;
 
 namespace SimpleBackup
 {
@@ -24,6 +25,8 @@ namespace SimpleBackup
     {
         private readonly static ViewModel _instance = new ViewModel();
         public static ViewModel Instance { get { return _instance; } }
+
+        public Dispatcher Dispatcher { get; private set; } = Dispatcher.CurrentDispatcher;
 
         private ViewModel()
         {
@@ -228,7 +231,7 @@ namespace SimpleBackup
             }, _measureBTDirCancelTSource.Token);
 
             //Debug.WriteLine($"MeasureBackupTargetDir {CBTSource.Children.Count}");
-            await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
+            await Dispatcher.InvokeAsync(() =>
             {
                 if (Directory.Exists(BackupTargetDir))
                 {
@@ -264,6 +267,9 @@ namespace SimpleBackup
                 return;
             }
 
+            if (e.BackupTask.SaveDir != SaveDir) { return; }
+
+            var li = ArrayList.Synchronized(new ArrayList(BackupHistory.Count));
             //シークエンス中のバックアップ履歴のIndexをインクリメント
             //Indexが最大バックアップ保存件数以上の場合Remove
             await Task.Run(() =>
@@ -271,29 +277,31 @@ namespace SimpleBackup
                 //ループ中にBackupHistory.Countが変わらないようにロック
                 lock (_backupHistoryLockObj)
                 {
-                    if (e.BackupTask.SaveDir == SaveDir)
+                    Parallel.ForEach(BackupHistory, entry =>
                     {
-                        List<BackupTask> li = new List<BackupTask>();
-                        Parallel.ForEach(BackupHistory, entry =>
+                        if (entry.InSequence == true &&
+                            entry.Status == BackupTaskStatus.Completed)
                         {
-                            if (entry.InSequence == true &&
-                                entry.Status == BackupTaskStatus.Completed)
-                            {
-                                entry.Index++;
-                            }
+                            entry.Index++;
+                        }
 
-                            if (entry.InSequence == true && entry.Index >= MaxBackups)
-                            {
-                                li.Add(entry);
-                            }
-                        });
-
-                        Parallel.ForEach(li, entry => RemoveBackup(entry, true));
-                        SaveBackupHistory();
-                    }
+                        if (entry.InSequence == true && entry.Index >= MaxBackups)
+                        {
+                            li.Add(entry);
+                        }
+                    });
                 }
             });
 
+            await Dispatcher.InvokeAsync(() =>
+            {
+                foreach (BackupTask entry in li)
+                {
+                    RemoveBackup(entry);
+                }
+            }, DispatcherPriority.DataBind);
+
+            SaveBackupHistory();
             UpdateDestinationDirveInfo();
         }
 
@@ -344,7 +352,7 @@ namespace SimpleBackup
             });
 
             //バックアップ項目をリストアップ
-            bt.TargetItems = await Dispatcher.CurrentDispatcher.InvokeAsync(() => CBTSource.GetCheckedItems());
+            bt.TargetItems = await Dispatcher.InvokeAsync(() => CBTSource.GetCheckedItems());
 
             await task;
             bt.Backup();
@@ -352,20 +360,8 @@ namespace SimpleBackup
 
         public void RemoveFailedBackup()
         {
-            for (int n = 0; n < BackupHistory.Count;)
-            {
-                var entry = BackupHistory[n];
-
-                if (entry.InSequence == true &&
-                    entry.Status == BackupTaskStatus.Failed)
-                {
-                    RemoveBackup(entry);
-                }
-                else
-                {
-                    n++;
-                }
-            }
+            var source = BackupHistory.Where(entry => entry.InSequence && entry.Status == BackupTaskStatus.Failed);
+            Parallel.ForEach(source, entry => RemoveBackup(entry));
         }
 
         public async void RemoveBackup(BackupTask entry, bool noLock = false)
@@ -383,13 +379,13 @@ namespace SimpleBackup
                 }
                 else
                 {
-                    await Task.Run(() =>
+                    await Dispatcher.InvokeAsync(() =>
                     {
                         lock (_backupHistoryLockObj)
                         {
                             BackupHistory.Remove(entry);
                         }
-                    });
+                    }, DispatcherPriority.DataBind);
                 }
             }
             catch (Exception ex)
@@ -417,14 +413,14 @@ namespace SimpleBackup
 
             if (jsObj.BackupHistory?.Count >= 1)
             {
-                await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
+                await Dispatcher.InvokeAsync(() =>
                 {
                     lock (_backupHistoryLockObj)
                     {
                         BackupHistory.Clear();
                         BackupHistory.AddRange(jsObj.BackupHistory);
                     }
-                });
+                }, DispatcherPriority.DataBind);
             }
             ResetSequence();
 
@@ -468,8 +464,7 @@ namespace SimpleBackup
                 BackupHistory.OrderByDescending<BackupTask, DateTime>(bt => bt.SaveTime)
             )
             {
-                if (
-                    entry.SourcePath != BackupTargetDir ||
+                if (entry.SourcePath != BackupTargetDir ||
                     entry.SaveDir != SaveDir
                 )
                 {
@@ -496,7 +491,7 @@ namespace SimpleBackup
             MeasureBackupTargetDir();
             UpdateDestinationDirveInfo();
 
-            DispatcherHelper.DoEvents();
+            Dispatcher.DoEvents(DispatcherPriority.Render);
 
             CBTSource.SetIgnoreItems(ignoreItems);
         }

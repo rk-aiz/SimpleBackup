@@ -70,8 +70,13 @@ namespace SimpleBackup.Helpers
                         using (var sr = new StreamReader(stream))
                         {
                             var obj = JsonConvert.DeserializeObject<JsonObject>(sr.ReadToEnd());
-                            this.BackupHistory = obj.BackupHistory;
-                            this.IgnoreItems = obj.IgnoreItems;
+                            if (obj != null)
+                            {
+                                if (obj.BackupHistory != null)
+                                    this.BackupHistory = obj.BackupHistory;
+                                if (obj.IgnoreItems != null)
+                                    this.IgnoreItems = obj.IgnoreItems;
+                            }
                         }
                     }
                     catch (Exception ex)

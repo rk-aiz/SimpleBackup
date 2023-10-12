@@ -96,52 +96,38 @@ namespace SimpleBackup
             Children?.Clear();
         }
 
-        //TreeのIsCheckedを親方向へ伝搬
+        /// <summary>
+        /// TreeのIsCheckedを親方向へ伝搬
+        /// </summary>
         public void UpdateParentStatus()
         {
-            if (null != Parent)
+            if (Parent == null || Parent.Children == null) { return; }
+
+            var e = Parent.Children.Select(node => node.IsChecked);
+
+            if (e.Contains(null)) { Parent.IsChecked = null; }
+            else if (e.Contains(true))
             {
-                int isCheckedNull = 0;
-                int isCheckedOn = 0;
-                int isCheckedOff = 0;
-                if (null != Parent.Children)
-                {
-                    foreach (var item in Parent.Children)
-                    {
-                        if (null == item.IsChecked) isCheckedNull += 1;
-                        if (true == item.IsChecked) isCheckedOn += 1;
-                        if (false == item.IsChecked) isCheckedOff += 1;
-                    }
-                }
-                if ((0 < isCheckedNull) || (0 < isCheckedOn) || (0 < isCheckedOff))
-                {
-                    if (0 < isCheckedNull)
-                        Parent.IsChecked = null;
-                    else if ((0 < isCheckedOn) && (0 < isCheckedOff))
-                        Parent.IsChecked = null;
-                    else if (0 < isCheckedOn)
-                        Parent.IsChecked = true;
-                    else
-                        Parent.IsChecked = false;
-                }
-                Parent.UpdateParentStatus();
+                if (e.Contains(false)) { Parent.IsChecked = null; }
+                else { Parent.IsChecked = true; }
             }
+            else { Parent.IsChecked = false; }
+            Parent.UpdateParentStatus();
         }
 
-        //TreeのIsCheckedを子方向へ伝搬
+        /// <summary>
+        /// TreeのIsCheckedを子方向へ伝搬
+        /// </summary>
         public void UpdateChildStatus()
         {
-            if (null != IsChecked)
+            if (null == IsChecked || null == Children) { return; }
+            
+            foreach (var item in Children)
             {
-                if (null != Children)
-                {
-                    foreach (var item in Children)
-                    {
-                        item.IsChecked = IsChecked;
-                        item.UpdateChildStatus();
-                    }
-                }
+                item.IsChecked = IsChecked;
+                item.UpdateChildStatus();
             }
+            
         }
 
         /// <summary>
@@ -234,7 +220,6 @@ namespace SimpleBackup
         /// <returns></returns>
         public List<string> GetIgnoreItems()
         {
-            Debug.WriteLine($"GetIgnoreItems : {GetPath()}");
             return GetIgnoreItemsCore(this);
         }
 
