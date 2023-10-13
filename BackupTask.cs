@@ -1,20 +1,15 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using SimpleBackup.Commands;
+using SimpleBackup.Events;
+using SimpleBackup.Helpers;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.Remoting.Messaging;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Threading;
-using System.Windows;
-using Newtonsoft.Json.Linq;
-using System.Windows.Shapes;
-using SimpleBackup.Commands;
 using System.Windows.Input;
-using System.Data.Common;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using SimpleBackup.Events;
+using System.Windows.Threading;
 
 namespace SimpleBackup
 {
@@ -68,6 +63,13 @@ namespace SimpleBackup
         {
             get { return _saveTime; }
             set { _saveTime = value; OnPropertyChanged("SaveTime"); }
+        }
+
+        private long _fileSize = -1;
+        public long FileSize
+        {
+            get { return _fileSize; }
+            set { _fileSize = value; OnPropertyChanged("FileSize"); }
         }
 
         private int _index;
@@ -173,6 +175,8 @@ namespace SimpleBackup
         {
             if (ex == null)
             {
+                FileInfo fi = new FileInfo(_savePath);
+                FileSize = fi.Length;
                 Status = BackupTaskStatus.Completed;
                 var msg = $"{LocalizeHelper.GetString("String_Backup_process_completed")} -> {_savePath}";
                 StatusHelper.UpdateStatus(msg);

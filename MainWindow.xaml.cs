@@ -140,17 +140,21 @@ namespace SimpleBackup
 
         private void UncheckAllButton_Click(object sender, RoutedEventArgs e)
         {
+            if (StatusHelper.Instance.SettingLock == true) { return; }
             _vm.CBTSource.UncheckAll();
         }
 
         private void CheckAllButton_Click(object sender, RoutedEventArgs e)
         {
+            if (StatusHelper.Instance.SettingLock == true) { return; }
             _vm.CBTSource.CheckAll();
         }
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
+            if (StatusHelper.Instance.SettingLock == true) { return; }
             _vm.Refresh();
         }
+
     }
 }

@@ -88,12 +88,12 @@ namespace SimpleBackup
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return !(value is bool && (bool)value);
+            return !(value is bool v && v);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return !(value is bool && (bool)value);
+            return !(value is bool v && v);
         }
     }
 
@@ -114,18 +114,21 @@ namespace SimpleBackup
             if (value == null)
                 return Binding.DoNothing;
 
-            long backValue;
-            if (long.TryParse((String)value, out backValue))
+            if (long.TryParse((String)value, out long backValue))
                 return backValue;
 
             return Binding.DoNothing;
         }
 
-        public string LengthToByteString(long length, string format = "{0:#,0.0}")
+        public string LengthToByteString(long length, string format = "{0:#,0.#}")
         {
             if (length > 0)
             {
-                if (length < 1024)
+                if (length < 10)
+                {
+                    return String.Format($"{format} KB", 0.1);
+                }
+                else if (length < 1048576)
                 {
                     return String.Format($"{format} KB", (float)length / (float)1024);
                 }
@@ -138,9 +141,13 @@ namespace SimpleBackup
                     return String.Format($"{format} GB", (float)length / (float)1073741824);
                 }
             }
-            else
+            else if (length == 0)
             {
                 return "0 KB";
+            }
+            else
+            {
+                return String.Empty;
             }
         }
     }

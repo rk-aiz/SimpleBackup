@@ -59,11 +59,6 @@ namespace SimpleBackup.Helpers
             }
         }
 
-        private void updateCallback(object sender, DirectoryMeasureUpdatedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         public long GetTotalSize()
         {
             return _totalSize;

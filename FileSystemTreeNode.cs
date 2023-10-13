@@ -5,10 +5,13 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Windows.Data;
+using System.Windows.Threading;
 using SimpleBackup.Extensions;
+using SimpleBackup.Helpers;
 
 namespace SimpleBackup
 {
@@ -17,8 +20,8 @@ namespace SimpleBackup
         private bool _IsExpanded = false;
         private bool? _IsChecked = true;
         private string _Name = "";
+        private long _length = -1;
         private FileSystemTreeNode _Parent = null;
-        private ObservableCollection<FileSystemTreeNode> _Children = null;
         private FileAttributes _Attributes = FileAttributes.Normal;
         public bool NotDummy { get; set; } = true;
 
@@ -29,7 +32,7 @@ namespace SimpleBackup
                 if (value == true )
                     if (CheckHaveDummy())
                     {
-                        GetChildren();
+                        GetChildrenAsync();
                     }
                 _IsExpanded = value;
                 OnPropertyChanged("IsExpanded");
@@ -57,6 +60,12 @@ namespace SimpleBackup
             set { _Attributes = value; OnPropertyChanged("Attrubutes"); }
         }
 
+        public long Length
+        {
+            get { return _length; }
+            set { _length = value; OnPropertyChanged("Length"); }
+        }
+
         public FileSystemTreeNode Parent
         {
             get { return _Parent; }
@@ -64,14 +73,13 @@ namespace SimpleBackup
         }
 
         public ObservableCollection<FileSystemTreeNode> Children { get; private set; } = new ObservableCollection<FileSystemTreeNode>();
-
-        private object __lockObj = new object();
+        private Dispatcher _dp;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public FileSystemTreeNode()
+        public FileSystemTreeNode(Dispatcher dp)
         {
-
+            _dp = dp;
         }
 
         private void OnPropertyChanged(string name)
@@ -85,7 +93,6 @@ namespace SimpleBackup
             if (null == Children)
             {
                 Children = new ObservableCollection<FileSystemTreeNode>();
-                //BindingOperations.EnableCollectionSynchronization(Children, __lockObj);
             }
             child.Parent = this;
             Children.Add(child);
@@ -159,21 +166,29 @@ namespace SimpleBackup
         /// 子ノードの取得
         /// </summary>
         /// <param name="di"></param>
+        public DispatcherOperation GetChildrenAsync(DirectoryInfo di = null)
+        {
+            return _dp.InvokeAsync(() =>
+            {
+                GetChildren(di);
+            });
+        }
+
         public void GetChildren(DirectoryInfo di = null)
         {
             if (di == null) { di = new DirectoryInfo(GetPath()); }
-            
             if (!di.Exists) { return; }
-            var list = new List<FileSystemTreeNode>();
 
+            var list = new List<FileSystemTreeNode>();
             //ファイル項目取得
             foreach (FileInfo fi in di.EnumerateFiles("*"))
             {
                 try
                 {
-                    list.Add(new FileSystemTreeNode()
+                    list.Add(new FileSystemTreeNode(_dp)
                     {
                         Name = fi.Name,
+                        Length = fi.Length,
                         Attributes = File.GetAttributes(fi.FullName),
                         IsChecked = this.IsChecked,
                         Parent = this
@@ -189,7 +204,7 @@ namespace SimpleBackup
             {
                 try
                 {
-                    var node = new FileSystemTreeNode()
+                    var node = new FileSystemTreeNode(_dp)
                     {
                         Name = child.Name,
                         Attributes = File.GetAttributes(child.FullName),
@@ -197,7 +212,7 @@ namespace SimpleBackup
                         Parent = this
                     };
                     //子にダミーを追加してExpand可能にする
-                    node.Add(new FileSystemTreeNode() { NotDummy = false });
+                    node.Add(new FileSystemTreeNode(_dp) { NotDummy = false });
                     list.Add(node);
                 }
                 catch (Exception ex)

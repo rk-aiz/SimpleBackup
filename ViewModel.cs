@@ -30,6 +30,7 @@ namespace SimpleBackup
 
         private ViewModel()
         {
+            CBTSource = new FileSystemTreeNode(Dispatcher);
             BindingOperations.EnableCollectionSynchronization(BackupHistory, _backupHistorySync);
             MeasureBackupTargetDir();
             UpdateDestinationDirveInfo();
@@ -117,7 +118,7 @@ namespace SimpleBackup
             set { _destinationDriveAvailableFreeSpace = value; OnPropertyChanged("DestinationDriveAvailableFreeSpace"); }
         }
 
-        public FileSystemTreeNode CBTSource { get; } = new FileSystemTreeNode();
+        public FileSystemTreeNode CBTSource { get; private set; }
 
         public double DriveFreeSpacePercentage
         {
@@ -346,6 +347,7 @@ namespace SimpleBackup
             var task = Task.Run(() =>
             {
                 lock (_backupHistoryLockObj)
+                lock (_backupHistorySync)
                 {
                     BackupHistory.Add(bt);
                 }

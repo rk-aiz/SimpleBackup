@@ -9,8 +9,8 @@ using System.Windows;
                                               //(used if a resource is not found in the page,
                                               // app, or any theme specific resource dictionaries)
 )]
-[assembly: AssemblyVersion("0.1.5.5")]
-[assembly: AssemblyFileVersion("0.1.5.5")]
+[assembly: AssemblyVersion("0.1.5.6")]
+[assembly: AssemblyFileVersion("0.1.5.6")]
 [assembly: AssemblyTitle("Simple Backup")]
 [assembly: AssemblyDescription("Simplified backup tool")]
 [assembly: AssemblyProduct("Simple Backup")]

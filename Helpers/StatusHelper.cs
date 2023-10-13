@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace SimpleBackup
+namespace SimpleBackup.Helpers
 {
     /// <summary>
     /// ステータスバーに表示する情報を扱うクラス

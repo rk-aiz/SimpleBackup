@@ -6,6 +6,7 @@
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:local="clr-namespace:SimpleBackup"
         xmlns:properties="clr-namespace:SimpleBackup.Properties"
+        xmlns:helpers="clr-namespace:SimpleBackup.Helpers"
         mc:Ignorable="d"
         Title="Simple Backup" Height="500" Width="600"
         ResizeMode="NoResize">
@@ -15,9 +16,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="ResourceDictionary.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-
-            <local:LengthToByteStringConverter x:Key="LengthToByteStringConverter"/>
-            <BooleanToVisibilityConverter x:Key="BoolVisibilityConverter" />
 
             <Storyboard x:Key="WaitStoryboard" Timeline.DesiredFrameRate="8">
                 <DoubleAnimation
@@ -88,6 +86,7 @@
                 Description="{x:Static properties:Resources.String_Select_Backup_Folder}"
                 Selected="DirectoryPathTextBox_Selected"/>
 
+            <!-- バックアップ対象内容 -->
             <StackPanel
                 Grid.Row="1" Grid.Column="1"
                 Margin="0, 2"
@@ -135,7 +134,8 @@
                 Text="{Binding SaveDir, UpdateSourceTrigger=PropertyChanged}"
                 Description="{x:Static properties:Resources.String_Select_Save_Location}"
                 Selected="DirectoryPathTextBox_Selected"/>
-        
+
+            <!-- 保存場所ドライブ容量 -->
             <StackPanel
                 Grid.Row="1"
                 Grid.Column="1"
@@ -148,8 +148,7 @@
                     <TextBlock.Text>
                         <Binding Path="DestinationDriveAvailableFreeSpace"
                                  Mode="OneWay"
-                                 Converter="{StaticResource LengthToByteStringConverter}"
-                                 ConverterParameter="{}{0:#,0}"/>
+                                 Converter="{StaticResource LengthToByteStringConverter}"/>
                     </TextBlock.Text>
                 </TextBlock>
                 <TextBlock Text=" / "/>
@@ -157,8 +156,7 @@
                     <TextBlock.Text>
                         <Binding Path="DestinationDriveTotalSize"
                                  Mode="OneWay"
-                                 Converter="{StaticResource LengthToByteStringConverter}"
-                                 ConverterParameter="{}{0:#,0}"/>
+                                 Converter="{StaticResource LengthToByteStringConverter}"/>
                     </TextBlock.Text>
                 </TextBlock>
                 <ProgressBar
@@ -185,37 +183,59 @@
                         <RowDefinition Height="30"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <StackPanel Orientation="Horizontal">
-                        <StackPanel.Resources>
-                            <Style TargetType="{x:Type Button}">
-                                <Setter Property="Width" Value="100"/>
-                                <Setter Property="Height" Value="18"/>
-                                <Setter Property="Margin" Value="5"/>
-                                <Setter Property="Padding" Value="0"/>
-                                <Setter Property="VerticalContentAlignment" Value="Center"/>
-                            </Style>
-                        </StackPanel.Resources>
-                        <Button
+                    <Border
+                        BorderThickness="0, 0, 0, 1"
+                        BorderBrush="#B0B0B0">
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel.Resources>
+                                <Style TargetType="{x:Type Button}">
+                                    <Setter Property="Width" Value="100"/>
+                                    <Setter Property="Height" Value="18"/>
+                                    <Setter Property="Margin" Value="5"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                </Style>
+                            </StackPanel.Resources>
+                            <Button
                             Content="{x:Static properties:Resources.String_Check_All}"
+                            IsEnabled="{Binding SettingLock,
+                                Source={x:Static helpers:StatusHelper.Instance},
+                                Converter={x:Static local:ReverseBooleanConverter.Instance}}"
                             Click="CheckAllButton_Click"/>
-                        <Button
+                            <Button
                             Content="{x:Static properties:Resources.String_Uncheck_All}"
+                            IsEnabled="{Binding SettingLock,
+                                Source={x:Static helpers:StatusHelper.Instance},
+                                Converter={x:Static local:ReverseBooleanConverter.Instance}}"
                             Click="UncheckAllButton_Click"/>
-                        <Button
+                            <Button
                             Content="{x:Static properties:Resources.String_Refresh}"
+                            IsEnabled="{Binding SettingLock,
+                                Source={x:Static helpers:StatusHelper.Instance},
+                                Converter={x:Static local:ReverseBooleanConverter.Instance}}"
                             Click="RefreshButton_Click"/>
-                    </StackPanel>
+                        </StackPanel>
+                    </Border>
                     <!-- ファイル個別設定 -->
-                    <local:CheckBoxTreeView
+
+                    <ScrollViewer
                         Grid.Row="1"
-                        BorderThickness="0, 1, 0, 0"
-                        BorderBrush="#B0B0B0"
-                        IsEnabled="{Binding SettingLock,
-                            Source={x:Static local:StatusHelper.Instance},
-                            Converter={x:Static local:ReverseBooleanConverter.Instance}}"
-                        ItemsSource="{Binding CBTSource.Children}"/>
+                        x:Name="FileSpecificSettingsScrollViewer"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Visible">
+                        <local:CheckBoxTreeView
+                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            BorderBrush="{x:Null}"
+                            BorderThickness="0"
+                            IsEnabled="{Binding SettingLock,
+                                Source={x:Static helpers:StatusHelper.Instance},
+                                Converter={x:Static local:ReverseBooleanConverter.Instance}}"
+                            ItemsSource="{Binding CBTSource.Children}"/>
+                    </ScrollViewer>
                 </Grid>
             </TabItem>
+            
             <TabItem Header="{x:Static properties:Resources.String_Backup_History}">
                 <!-- バックアップ履歴 -->
                 <ListBox
@@ -293,7 +313,7 @@
                             InputMethod.IsInputMethodEnabled="False"
                             Width="40"
                             Margin="5"
-                            IsReadOnly="{Binding SettingLock, Source={x:Static local:StatusHelper.Instance}}"
+                            IsReadOnly="{Binding SettingLock, Source={x:Static helpers:StatusHelper.Instance}}"
                             LostKeyboardFocus="TextBox_LostKeyboardFocus">
                             <TextBox.Text>
                                 <Binding Path="BackupInterval"
@@ -330,7 +350,7 @@
                             InputMethod.IsInputMethodEnabled="False"
                             Width="40"
                             Margin="5"
-                            IsReadOnly="{Binding SettingLock, Source={x:Static local:StatusHelper.Instance}}"
+                            IsReadOnly="{Binding SettingLock, Source={x:Static helpers:StatusHelper.Instance}}"
                             LostKeyboardFocus="TextBox_LostKeyboardFocus">
                             <TextBox.Text>
                                 <Binding Path="MaxBackups"
@@ -364,7 +384,7 @@
                     Width="100"
                     Margin="5"
                     IsReadOnly="{Binding SettingLock,
-                        Source={x:Static local:StatusHelper.Instance}}"
+                        Source={x:Static helpers:StatusHelper.Instance}}"
                     IsEnabled="{Binding IsReadOnly,
                         RelativeSource={RelativeSource Self}, Converter={x:Static local:ReverseBooleanConverter.Instance}}">
                     <ComboBox.SelectedValue>
@@ -407,7 +427,7 @@
             <TextBlock
                 Padding="0"
                 Margin="5, 0"
-                Text="{Binding Message, Source={x:Static local:StatusHelper.Instance}}"/>
+                Text="{Binding Message, Source={x:Static helpers:StatusHelper.Instance}}"/>
             <TextBlock
                 x:Name="Wait"
                 Foreground="#4090D0"
@@ -417,7 +437,7 @@
                 RenderTransformOrigin="0.5, 0.5"
                 Margin="5, 0"
                 Visibility="{Binding ProgressStatus,
-                    Source={x:Static local:StatusHelper.Instance},
+                    Source={x:Static helpers:StatusHelper.Instance},
                     Converter={StaticResource BoolVisibilityConverter}}">
                 <TextBlock.RenderTransform>
                     <RotateTransform Angle="0" />
@@ -425,7 +445,7 @@
                 <TextBlock.Style>
                     <Style TargetType="{x:Type TextBlock}">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding ProgressStatus, Source={x:Static local:StatusHelper.Instance}}" Value="True">
+                            <DataTrigger Binding="{Binding ProgressStatus, Source={x:Static helpers:StatusHelper.Instance}}" Value="True">
                                 <DataTrigger.EnterActions>
                                     <BeginStoryboard Storyboard="{StaticResource WaitStoryboard}" Name="bsb"/>
                                 </DataTrigger.EnterActions>
