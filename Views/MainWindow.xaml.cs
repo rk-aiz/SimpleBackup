@@ -1,4 +1,5 @@
 ﻿using SimpleBackup.Helpers;
+using SimpleBackup.Controls;
 using System;
 using System.Diagnostics;
 using System.Windows;
@@ -7,7 +8,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 
-namespace SimpleBackup
+namespace SimpleBackup.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -41,10 +42,20 @@ namespace SimpleBackup
                 StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Ready"));
             };
 
-            Closed += (sender, e) =>
+            
+            Closing += (s, e) =>
             {
                 _vm.SaveBackupHistory();
+
+                //タスクトレイ常駐モードの場合、CloseをキャンセルしてHide
+                if (TaskTray.Instance.TaskTrayMode != TaskTrayMode.ShowWindowOnly)
+                {
+                    Hide();
+                    e.Cancel = true;
+                }
             };
+
+            Closed += (s, e) => TaskTray.Instance.Close();
         }
 
         private void BackupNowButton_Click(object sender, RoutedEventArgs e)
@@ -126,7 +137,9 @@ namespace SimpleBackup
             bt.RequestCancel();
         }
 
-        //ディレクトリ選択ダイアロクを表示
+        /// <summary>
+        /// ディレクトリ選択ダイアロクを表示
+        /// </summary>
         private async void DirectoryPathTextBox_Selected(object sender, RoutedEventArgs e)
         {
             if (StatusHelper.Instance.SettingLock == true) { return; }
@@ -155,6 +168,5 @@ namespace SimpleBackup
             if (StatusHelper.Instance.SettingLock == true) { return; }
             _vm.Refresh();
         }
-
     }
 }

@@ -12,7 +12,7 @@ using System.Windows.Threading;
 using System.Xml.Linq;
 using SimpleBackup.Helpers;
 
-namespace SimpleBackup
+namespace SimpleBackup.Views
 {
     /// <summary>
     /// CheckBoxTreeView.xaml の相互作用ロジック

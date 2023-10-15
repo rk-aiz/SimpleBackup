@@ -10,6 +10,7 @@ namespace SimpleBackup.Helpers
 {
     /// <summary>
     /// CommonOpenFileDialog用ヘルパークラス
+    /// 主目的はUIスレッドが固まらないようにDispatcher.InvokeAsyncを利用すること
     /// </summary>
     internal static class CofDialogHelper
     {

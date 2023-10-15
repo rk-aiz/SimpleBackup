@@ -61,11 +61,38 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   {0} Files に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string FormatString_Files {
+            get {
+                return ResourceManager.GetString("FormatString_Files", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Above Normal に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Above_Normal {
             get {
                 return ResourceManager.GetString("String_Above_Normal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   App Settings に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_App_Settings {
+            get {
+                return ResourceManager.GetString("String_App_Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   App startup and resident mode に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_App_Startup_Mode {
+            get {
+                return ResourceManager.GetString("String_App_Startup_Mode", resourceCulture);
             }
         }
         
@@ -223,6 +250,15 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Language に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Language {
+            get {
+                return ResourceManager.GetString("String_Language", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Lowest に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Lowest {
@@ -358,7 +394,7 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
-        ///   Select the folder to be backup に類似しているローカライズされた文字列を検索します。
+        ///   Select the folder to be backup. に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Select_Backup_Folder {
             get {
@@ -376,6 +412,33 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Settings に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Settings {
+            get {
+                return ResourceManager.GetString("String_Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Show window and tray icon. に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Show_Window_And_TrayIcon {
+            get {
+                return ResourceManager.GetString("String_Show_Window_And_TrayIcon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Show window without tray icon. に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Show_Window_Only {
+            get {
+                return ResourceManager.GetString("String_Show_Window_Only", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Size に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Size {
@@ -385,20 +448,20 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Tray icon only. に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Tray_Icon_Only {
+            get {
+                return ResourceManager.GetString("String_Tray_Icon_Only", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Uncheck all に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Uncheck_All {
             get {
                 return ResourceManager.GetString("String_Uncheck_All", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   {0} Files に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        public static string StringFormat_Files {
-            get {
-                return ResourceManager.GetString("StringFormat_Files", resourceCulture);
             }
         }
     }

@@ -117,11 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="StringFormat_Files" xml:space="preserve">
+  <data name="FormatString_Files" xml:space="preserve">
     <value>{0} Files</value>
   </data>
   <data name="String_Above_Normal" xml:space="preserve">
     <value>Above Normal</value>
+  </data>
+  <data name="String_App_Settings" xml:space="preserve">
+    <value>App Settings</value>
+  </data>
+  <data name="String_App_Startup_Mode" xml:space="preserve">
+    <value>App startup and resident mode</value>
   </data>
   <data name="String_Backup_History" xml:space="preserve">
     <value>Backup History</value>
@@ -174,6 +180,9 @@
   <data name="String_Highest" xml:space="preserve">
     <value>Highest</value>
   </data>
+  <data name="String_Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
   <data name="String_Lowest" xml:space="preserve">
     <value>Lowest</value>
   </data>
@@ -220,13 +229,25 @@
     <value>Scheduled Backup</value>
   </data>
   <data name="String_Select_Backup_Folder" xml:space="preserve">
-    <value>Select the folder to be backup</value>
+    <value>Select the folder to be backup.</value>
   </data>
   <data name="String_Select_Save_Location" xml:space="preserve">
     <value>Select a location where to save the backup.</value>
   </data>
+  <data name="String_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="String_Show_Window_And_TrayIcon" xml:space="preserve">
+    <value>Show window and tray icon.</value>
+  </data>
+  <data name="String_Show_Window_Only" xml:space="preserve">
+    <value>Show window without tray icon.</value>
+  </data>
   <data name="String_Size" xml:space="preserve">
     <value>Size</value>
+  </data>
+  <data name="String_Tray_Icon_Only" xml:space="preserve">
+    <value>Tray icon only.</value>
   </data>
   <data name="String_Uncheck_All" xml:space="preserve">
     <value>Uncheck all</value>

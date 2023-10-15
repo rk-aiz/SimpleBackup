@@ -116,20 +116,24 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CultureAwareBinding.cs" />
+    <Compile Include="UpdateService.cs" />
     <Compile Include="Events\DirectoryMeasureUpdatedEvent.cs" />
+    <Compile Include="Extensions\BindingExtensions.cs" />
     <Compile Include="Extensions\FileSystemInfoExtensions.cs" />
     <Compile Include="FileSystemTreeNode.cs" />
-    <Compile Include="CheckBoxTreeView.xaml.cs">
+    <Compile Include="Views\CheckBoxTreeView.xaml.cs">
       <DependentUpon>CheckBoxTreeView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Commands\DelegateCommand.cs" />
     <Compile Include="DirectoryCleaning.cs" />
     <Compile Include="EnumSource.cs" />
+    <Compile Include="Controls\FormattedTextBox.cs" />
     <Compile Include="Helpers\DispatcherHelper.cs" />
     <Compile Include="Helpers\JsonHelper.cs" />
     <Compile Include="Helpers\CofDialogHelper.cs" />
     <Compile Include="Helpers\DirectoryMeasure.cs" />
-    <Compile Include="DirectoryPathTextBox.cs" />
+    <Compile Include="Controls\DirectoryPathTextBox.cs" />
     <Compile Include="Helpers\JsonObject.cs" />
     <Compile Include="Extensions\ObservableCollectionExtensions.cs" />
     <Compile Include="Events\ProgressChangedEvent.cs" />
@@ -144,14 +148,17 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Helpers\StatusHelper.cs" />
+    <Compile Include="TaskTray.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="ValidationRules.cs" />
     <Compile Include="ViewModel.cs" />
     <Compile Include="Helpers\ZipArchiveHelper.cs" />
-    <Page Include="CheckBoxTreeView.xaml">
+    <Page Include="Views\CheckBoxTreeView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainWindow.xaml">
+    <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -166,12 +173,12 @@
     <Compile Include="Converters.cs" />
     <Compile Include="VisualTreeHelper.cs" />
     <Compile Include="LocalizedDescriptionAttribute.cs" />
-    <Compile Include="LocalizeHelper.cs" />
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="Helpers\LocalizeHelper.cs" />
+    <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="ResourceDictionary.xaml">
+    <Page Include="Views\ResourceDictionary.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -215,7 +222,7 @@
     <Resource Include="icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="View\" />
+    <Folder Include="Converters\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

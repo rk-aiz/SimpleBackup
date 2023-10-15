@@ -6,7 +6,7 @@ namespace SimpleBackup
 {
     public class LocalizedDescriptionAttribute : DescriptionAttribute
     {
-        ResourceManager _resourceManager;
+        readonly ResourceManager _resourceManager;
         private readonly string _resourceKey;
 
         public LocalizedDescriptionAttribute(string resourceKey, Type resourceType)

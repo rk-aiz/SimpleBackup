@@ -117,7 +117,7 @@ namespace SimpleBackup
         /// </summary>
         public event BackupCompletedEventHandler BackupCompleted;
 
-        private ThreadPriority _priority;
+        private readonly ThreadPriority _priority;
         private string _savePath;
 
         public BackupTask(ThreadPriority priority)

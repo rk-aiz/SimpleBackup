@@ -117,11 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="StringFormat_Files" xml:space="preserve">
+  <data name="FormatString_Files" xml:space="preserve">
     <value>ファイル数 {0}</value>
   </data>
   <data name="String_Above_Normal" xml:space="preserve">
     <value>通常以上</value>
+  </data>
+  <data name="String_App_Settings" xml:space="preserve">
+    <value>アプリ設定</value>
+  </data>
+  <data name="String_App_Startup_Mode" xml:space="preserve">
+    <value>アプリ起動・常駐設定</value>
   </data>
   <data name="String_Backup_History" xml:space="preserve">
     <value>バックアップ履歴</value>
@@ -174,6 +180,9 @@
   <data name="String_Highest" xml:space="preserve">
     <value>最高</value>
   </data>
+  <data name="String_Language" xml:space="preserve">
+    <value>言語(Language)</value>
+  </data>
   <data name="String_Lowest" xml:space="preserve">
     <value>最低</value>
   </data>
@@ -225,8 +234,20 @@
   <data name="String_Select_Save_Location" xml:space="preserve">
     <value>バックアップを保存する場所を選択してください</value>
   </data>
+  <data name="String_Settings" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="String_Show_Window_And_TrayIcon" xml:space="preserve">
+    <value>ウィンドウを表示して、常駐する</value>
+  </data>
+  <data name="String_Show_Window_Only" xml:space="preserve">
+    <value>ウィンドウを表示して、常駐はしない</value>
+  </data>
   <data name="String_Size" xml:space="preserve">
     <value>サイズ</value>
+  </data>
+  <data name="String_Tray_Icon_Only" xml:space="preserve">
+    <value>タスクトレイアイコンのみ</value>
   </data>
   <data name="String_Uncheck_All" xml:space="preserve">
     <value>全てチェック解除</value>

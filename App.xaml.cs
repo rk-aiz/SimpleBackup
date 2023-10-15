@@ -1,11 +1,11 @@
-﻿using SimpleBackup.Properties;
+﻿using SimpleBackup.Helpers;
+using SimpleBackup.Properties;
 using System;
 using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace SimpleBackup
@@ -67,6 +67,28 @@ namespace SimpleBackup
             {
                 return;
             }
+        }
+
+        /// <summary>
+        /// 常駐開始時の初期化処理
+        /// </summary>
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            //継承元のOnStartupを呼び出す
+            base.OnStartup(e);
+
+            using (var appContext = new System.Windows.Forms.ApplicationContext())
+            {
+
+                if (TaskTray.Instance.TaskTrayMode != TaskTrayMode.TrayIconOnly)
+                {
+                    TaskTray.Instance.ShowWindow();
+                }
+
+                System.Windows.Forms.Application.Run(appContext);
+            }
+            Debug.WriteLine("Shutdown");
+            Shutdown();
         }
     }
 }

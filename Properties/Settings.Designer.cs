@@ -125,5 +125,17 @@ namespace SimpleBackup.Properties {
                 this["Thread_Priority"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int TaskTrayMode {
+            get {
+                return ((int)(this["TaskTrayMode"]));
+            }
+            set {
+                this["TaskTrayMode"] = value;
+            }
+        }
     }
 }

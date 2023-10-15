@@ -1,20 +1,18 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.Remoting.Contexts;
+using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Data;
+using SimpleBackup.Helpers;
+using static System.Resources.ResXFileRef;
 
 
 namespace SimpleBackup
 {
-    public class CultureAwareBinding : Binding
-    {
-        public CultureAwareBinding()
-        {
-            ConverterCulture = CultureInfo.CurrentUICulture;
-        }
-    }
-
     [ValueConversion(typeof(Int32), typeof(String))]
     public class IndexConverter : IValueConverter
     {
