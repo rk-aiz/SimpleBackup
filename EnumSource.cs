@@ -1,14 +1,9 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Markup;
-using System.Linq;
-using SimpleBackup.Helpers;
+﻿using SimpleBackup.Converters;
+using System;
 using System.ComponentModel;
-using System.Reflection;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Windows;
 using System.Windows.Data;
-using SimpleBackup.Converters;
+using System.Windows.Markup;
 
 namespace SimpleBackup
 {

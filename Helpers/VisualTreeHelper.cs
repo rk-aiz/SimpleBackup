@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Windows;
 using System.Diagnostics;
+using System.Windows;
 
-namespace SimpleBackup
+namespace SimpleBackup.Helpers
 {
     /// <summary>
     /// VisualTreeHelperの拡張
@@ -35,15 +35,17 @@ namespace SimpleBackup
             {
                 //Debug.WriteLine(dpObj);
                 if (dpObj.GetValue(FrameworkElement.NameProperty) is string name)
-                if (name == findName)
-                {
-                    return dpObj;
-                }
+                    if (name == findName)
+                    {
+                        return dpObj;
+                    }
 
                 int count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(dpObj);
-                if (count > 0){
+                if (count > 0)
+                {
                     // VisualTreeを再帰探査
-                    for (int i = 0; i < count; i++ ){
+                    for (int i = 0; i < count; i++)
+                    {
 
                         DependencyObject result = FindVisualTree(System.Windows.Media.VisualTreeHelper.GetChild(dpObj, i), findName);
 

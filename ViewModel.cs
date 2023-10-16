@@ -1,6 +1,9 @@
-﻿using System;
+﻿using SimpleBackup.Events;
+using SimpleBackup.Extensions;
+using SimpleBackup.Helpers;
+using SimpleBackup.Properties;
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -10,12 +13,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Threading;
-using SimpleBackup.Events;
-using SimpleBackup.Helpers;
-using SimpleBackup.Properties;
-using SimpleBackup.Extensions;
-using System.Windows.Documents;
-using System.Windows.Forms;
 
 namespace SimpleBackup
 {
@@ -95,7 +92,7 @@ namespace SimpleBackup
         public long BackupTargetTotalLength
         {
             get { return _backupTargetTotalLength; }
-            set { _backupTargetTotalLength  = value; OnPropertyChanged("BackupTargetTotalLength"); }
+            set { _backupTargetTotalLength = value; OnPropertyChanged("BackupTargetTotalLength"); }
         }
 
         private int _backupTargetFilesCount;
@@ -349,10 +346,10 @@ namespace SimpleBackup
             var task = Task.Run(() =>
             {
                 lock (_backupHistoryLockObj)
-                lock (_backupHistorySync)
-                {
-                    BackupHistory.Add(bt);
-                }
+                    lock (_backupHistorySync)
+                    {
+                        BackupHistory.Add(bt);
+                    }
             });
 
             //バックアップ項目をリストアップ
@@ -499,7 +496,5 @@ namespace SimpleBackup
 
             CBTSource.SetIgnoreItems(ignoreItems);
         }
-
-
     }
 }

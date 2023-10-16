@@ -1,15 +1,11 @@
-﻿using System;
+﻿using SimpleBackup.Events;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.ComponentModel;
-using System.Linq;
-using System.Collections;
-using System.Security.AccessControl;
-using System.Security.Principal;
-using SimpleBackup.Events;
 
 namespace SimpleBackup.Helpers
 {

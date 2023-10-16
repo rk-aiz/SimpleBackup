@@ -1,5 +1,4 @@
-﻿using SimpleBackup.Helpers;
-using SimpleBackup.Properties;
+﻿using SimpleBackup.Properties;
 using System;
 using System.Configuration;
 using System.Diagnostics;

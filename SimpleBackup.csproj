@@ -123,6 +123,7 @@
     <Compile Include="CultureAwareBinding.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
     <Compile Include="Extensions\ObjectExtensions.cs" />
+    <Compile Include="Helpers\VisualTreeHelper.cs" />
     <Compile Include="UpdateService.cs" />
     <Compile Include="Events\DirectoryMeasureUpdatedEvent.cs" />
     <Compile Include="Extensions\BindingExtensions.cs" />
@@ -177,7 +178,6 @@
     <Compile Include="BackupTask.cs" />
     <Compile Include="BackupScheduler.cs" />
     <Compile Include="Converters\LengthToByteStringConverter.cs" />
-    <Compile Include="VisualTreeHelper.cs" />
     <Compile Include="LocalizedDescriptionAttribute.cs" />
     <Compile Include="Helpers\LocalizeHelper.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">

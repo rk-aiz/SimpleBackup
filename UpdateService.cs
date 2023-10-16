@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
+﻿using SimpleBackup.Extensions;
+using System;
 using System.Windows;
-using System.Windows.Data;
-using System.ComponentModel;
-using System.Diagnostics;
-using SimpleBackup.Extensions;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Documents;
+using System.Windows.Data;
 
 namespace SimpleBackup.Helpers
 {

@@ -1,5 +1,5 @@
-﻿using SimpleBackup.Helpers;
-using SimpleBackup.Controls;
+﻿using SimpleBackup.Controls;
+using SimpleBackup.Helpers;
 using System;
 using System.Diagnostics;
 using System.Windows;
@@ -42,7 +42,7 @@ namespace SimpleBackup.Views
                 StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Ready"));
             };
 
-            
+
             Closing += (s, e) =>
             {
                 _vm.SaveBackupHistory();

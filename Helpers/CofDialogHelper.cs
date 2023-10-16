@@ -1,10 +1,5 @@
 ﻿using Microsoft.WindowsAPICodePack.Dialogs;
-using System.Windows.Data;
-using System.Windows;
 using System.Windows.Threading;
-using System.Windows.Controls;
-using System;
-using System.Windows.Input;
 
 namespace SimpleBackup.Helpers
 {

@@ -1,17 +1,12 @@
-﻿using System;
+﻿using SimpleBackup.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Windows.Data;
 using System.Windows.Threading;
-using SimpleBackup.Extensions;
-using SimpleBackup.Helpers;
 
 namespace SimpleBackup
 {
@@ -28,8 +23,9 @@ namespace SimpleBackup
         public bool IsExpanded
         {
             get { return _IsExpanded; }
-            set {
-                if (value == true )
+            set
+            {
+                if (value == true)
                     if (CheckHaveDummy())
                     {
                         GetChildrenAsync();
@@ -43,7 +39,8 @@ namespace SimpleBackup
         {
             get { return _IsChecked; }
             set
-            { _IsChecked = value;
+            {
+                _IsChecked = value;
                 OnPropertyChanged("IsChecked");
             }
         }
@@ -128,13 +125,13 @@ namespace SimpleBackup
         public void UpdateChildStatus()
         {
             if (null == IsChecked || null == Children) { return; }
-            
+
             foreach (var item in Children)
             {
                 item.IsChecked = IsChecked;
                 item.UpdateChildStatus();
             }
-            
+
         }
 
         /// <summary>
@@ -286,7 +283,7 @@ namespace SimpleBackup
             var checkedNodes = node.Children.Where(item => (item.IsChecked != false));
 
             //「ファイル」項目を追加
-            items.AddRange(checkedNodes.Where(item  => !File.GetAttributes(item.GetPath()).HasFlag(FileAttributes.Directory))
+            items.AddRange(checkedNodes.Where(item => !File.GetAttributes(item.GetPath()).HasFlag(FileAttributes.Directory))
                                        .Select(item => new FileInfo(item.GetPath())));
 
             //「ディレクトリ」項目を追加、再帰探査

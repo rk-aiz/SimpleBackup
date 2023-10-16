@@ -1,5 +1,4 @@
-﻿using SimpleBackup.Helpers;
-using SimpleBackup.Properties;
+﻿using SimpleBackup.Properties;
 using SimpleBackup.Views;
 using System;
 using System.ComponentModel;
@@ -7,8 +6,6 @@ using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Forms;
-using System.Diagnostics;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Windows.Forms.Integration;
 
 namespace SimpleBackup

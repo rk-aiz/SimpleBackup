@@ -1,11 +1,11 @@
-﻿using System;
+﻿using SimpleBackup.Events;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
-using System.Diagnostics;
-using System.Collections.Generic;
-using SimpleBackup.Events;
 
 namespace SimpleBackup.Helpers
 {
@@ -98,7 +98,7 @@ namespace SimpleBackup.Helpers
                     }
                 }
                 catch (Exception ex)
-                { 
+                {
                     exception = ex;
                 }
             }
