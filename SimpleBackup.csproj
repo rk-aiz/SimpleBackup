@@ -116,7 +116,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\BooleanToEnumConverter.cs" />
+    <Compile Include="Converters\EnumDescriptionTypeConverter.cs" />
+    <Compile Include="Converters\IndexConverter.cs" />
+    <Compile Include="Converters\ReverseBooleanConverter.cs" />
     <Compile Include="CultureAwareBinding.cs" />
+    <Compile Include="Extensions\EnumExtensions.cs" />
+    <Compile Include="Extensions\ObjectExtensions.cs" />
     <Compile Include="UpdateService.cs" />
     <Compile Include="Events\DirectoryMeasureUpdatedEvent.cs" />
     <Compile Include="Extensions\BindingExtensions.cs" />
@@ -170,7 +176,7 @@
     <Compile Include="Events\BackupCompletedEvent.cs" />
     <Compile Include="BackupTask.cs" />
     <Compile Include="BackupScheduler.cs" />
-    <Compile Include="Converters.cs" />
+    <Compile Include="Converters\LengthToByteStringConverter.cs" />
     <Compile Include="VisualTreeHelper.cs" />
     <Compile Include="LocalizedDescriptionAttribute.cs" />
     <Compile Include="Helpers\LocalizeHelper.cs" />
@@ -221,8 +227,6 @@
   <ItemGroup>
     <Resource Include="icon.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Converters\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

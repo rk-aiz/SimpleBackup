@@ -8,6 +8,7 @@
         xmlns:views="clr-namespace:SimpleBackup.Views"
         xmlns:controls="clr-namespace:SimpleBackup.Controls"
         xmlns:helpers="clr-namespace:SimpleBackup.Helpers"
+        xmlns:converters="clr-namespace:SimpleBackup.Converters"
         mc:Ignorable="d"
         Title="Simple Backup"
         Height="500" Width="600"
@@ -118,7 +119,7 @@
                     <TextBlock.Text>
                         <Binding Path="BackupTargetTotalLength"
                                  Mode="OneWay"
-                                 Converter="{StaticResource LengthToByteStringConverter}"
+                                 Converter="{x:Static converters:LengthToByteStringConverter.Instance}"
                                  ConverterParameter="{}{0:N1}"/>
                     </TextBlock.Text>
                 </TextBlock>
@@ -148,7 +149,7 @@
                     <TextBlock.Text>
                         <Binding Path="DestinationDriveAvailableFreeSpace"
                                  Mode="OneWay"
-                                 Converter="{StaticResource LengthToByteStringConverter}"/>
+                                 Converter="{x:Static converters:LengthToByteStringConverter.Instance}"/>
                     </TextBlock.Text>
                 </TextBlock>
                 <TextBlock Text=" / "/>
@@ -156,7 +157,7 @@
                     <TextBlock.Text>
                         <Binding Path="DestinationDriveTotalSize"
                                  Mode="OneWay"
-                                 Converter="{StaticResource LengthToByteStringConverter}"/>
+                                 Converter="{x:Static converters:LengthToByteStringConverter.Instance}"/>
                     </TextBlock.Text>
                 </TextBlock>
                 <ProgressBar
@@ -200,19 +201,19 @@
                             Content="{local:CultureAwareBinding Key=String_Check_All}"
                             IsEnabled="{Binding SettingLock,
                                 Source={x:Static helpers:StatusHelper.Instance},
-                                Converter={x:Static local:ReverseBooleanConverter.Instance}}"
+                                Converter={x:Static converters:ReverseBooleanConverter.Instance}}"
                             Click="CheckAllButton_Click"/>
                             <Button
                             Content="{local:CultureAwareBinding Key=String_Uncheck_All}"
                             IsEnabled="{Binding SettingLock,
                                 Source={x:Static helpers:StatusHelper.Instance},
-                                Converter={x:Static local:ReverseBooleanConverter.Instance}}"
+                                Converter={x:Static converters:ReverseBooleanConverter.Instance}}"
                             Click="UncheckAllButton_Click"/>
                             <Button
                             Content="{local:CultureAwareBinding Key=String_Refresh}"
                             IsEnabled="{Binding SettingLock,
                                 Source={x:Static helpers:StatusHelper.Instance},
-                                Converter={x:Static local:ReverseBooleanConverter.Instance}}"
+                                Converter={x:Static converters:ReverseBooleanConverter.Instance}}"
                             Click="RefreshButton_Click"/>
                         </StackPanel>
                     </Border>
@@ -230,7 +231,7 @@
                             BorderThickness="0"
                             IsEnabled="{Binding SettingLock,
                                 Source={x:Static helpers:StatusHelper.Instance},
-                                Converter={x:Static local:ReverseBooleanConverter.Instance}}"
+                                Converter={x:Static converters:ReverseBooleanConverter.Instance}}"
                             ItemsSource="{Binding CBTSource.Children}"/>
                     </ScrollViewer>
                 </Grid>
@@ -310,7 +311,7 @@
                                 Text="{Binding IsChecked,
                                     ElementName=ScheduledBackupButton,
                                     Converter={StaticResource BooleanToEnumConverter},
-                                    ConverterParameter={x:Type helpers:ToggleStateMessage}}"/>
+                                    ConverterParameter={x:Type local:ToggleStateMessage}}"/>
                         </ToggleButton.Content>
                     </ToggleButton>
 
@@ -387,14 +388,14 @@
                     HorizontalAlignment="Center">
 
                 <ComboBox
-                    ItemsSource="{local:EnumTypeSourceBinding {x:Type helpers:Priority}}"
+                    ItemsSource="{local:EnumTypeSourceBinding {x:Type local:Priority}}"
                     helpers:UpdateService.ItemsSourceUpdater="{x:Static helpers:LocalizeHelper.Instance}"
                     Width="120"
                     Margin="5"
                     IsReadOnly="{Binding SettingLock,
                         Source={x:Static helpers:StatusHelper.Instance}}"
                     IsEnabled="{Binding IsReadOnly,
-                        RelativeSource={RelativeSource Self}, Converter={x:Static local:ReverseBooleanConverter.Instance}}"
+                        RelativeSource={RelativeSource Self}, Converter={x:Static converters:ReverseBooleanConverter.Instance}}"
                     SelectedValue="{Binding Path=Priority, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     >
                     <ComboBox.Style>
@@ -484,7 +485,7 @@
                     <ComboBox
                         Grid.Row="1" Grid.Column="1"
                         helpers:UpdateService.ItemsSourceUpdater="{x:Static helpers:LocalizeHelper.Instance}"
-                        ItemsSource="{local:EnumTypeSourceBinding {x:Type helpers:TaskTrayMode}}"
+                        ItemsSource="{local:EnumTypeSourceBinding {x:Type local:TaskTrayMode}}"
                         Margin="8">
                         <ComboBox.SelectedValue>
                             <Binding

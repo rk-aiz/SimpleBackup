@@ -176,9 +176,10 @@ namespace SimpleBackup
                     Settings.Default.Maximum_Number_of_Backups = value;
                     var msg = $"{LocalizeHelper.GetString("String_Maximum_Number_of_Backups")} -> {Settings.Default.Maximum_Number_of_Backups}";
                     StatusHelper.UpdateStatus(msg);
-                    Debug.WriteLine($"maxBackups : {Settings.Default.Maximum_Number_of_Backups}");
-                    OnPropertyChanged("maxBackups");
+                    Debug.WriteLine($"MaxBackups : {Settings.Default.Maximum_Number_of_Backups}");
+                    OnPropertyChanged("MaxBackups");
                 }
+
             }
         }
 

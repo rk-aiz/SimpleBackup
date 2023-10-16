@@ -31,7 +31,11 @@ namespace SimpleBackup
             if (Settings.Default.IsFirstRun)
             {
                 Debug.WriteLine("Settings Upgrade");
-                Settings.Default.Upgrade();
+                try
+                {
+                    Settings.Default.Upgrade();
+                }
+                catch { }
                 Settings.Default.IsFirstRun = false;
 
                 //Delete the old user.config file

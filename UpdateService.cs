@@ -64,10 +64,11 @@ namespace SimpleBackup.Helpers
                     if (!(sender is DependencyObject dpObj)) { return; }
                     BindingOperations.GetBindingExpression(dpObj, ItemsControl.ItemsSourceProperty)?.UpdateTarget();
 
+                    //Selectorを備えたItemsControlの場合TextBlockの値を再設定
                     if ((sender is Selector selector) &&
                         (VisualTreeHelper.FindVisualTreeByType(dpObj, typeof(TextBlock)) is TextBlock tb))
                     {
-                        tb.Text = LocalizeHelper.GetEnumLocalizeDescription(selector.SelectedValue);
+                        tb.Text = selector.SelectedValue.ToStringWithTypeConverter();
                     }
                 };
             })

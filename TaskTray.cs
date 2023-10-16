@@ -7,6 +7,9 @@ using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Forms;
+using System.Diagnostics;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Windows.Forms.Integration;
 
 namespace SimpleBackup
 {
@@ -100,6 +103,8 @@ namespace SimpleBackup
                     //ウィンドウを画面中央に表示
                     WindowStartupLocation = WindowStartupLocation.CenterScreen
                 };
+                //キー入力のForm => WPF 転送
+                ElementHost.EnableModelessKeyboardInterop(_mainWindow);
             }
             _mainWindow.Show();
         }
@@ -115,7 +120,6 @@ namespace SimpleBackup
                 _notifyIcon.Visible = false;
                 _notifyIcon.Dispose();
             }
-
             base.Close();
             System.Windows.Forms.Application.ExitThread();
         }

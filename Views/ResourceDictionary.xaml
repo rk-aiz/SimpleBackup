@@ -1,12 +1,13 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:SimpleBackup"
+                    xmlns:converters="clr-namespace:SimpleBackup.Converters"
                     xmlns:controls="clr-namespace:SimpleBackup.Controls"
                     xmlns:helpers="clr-namespace:SimpleBackup.Helpers">
 
-    <local:BooleanToEnumConverter x:Key="BooleanToEnumConverter"/>
-    <local:IndexConverter x:Key="IndexConverter"/>
-    <local:LengthToByteStringConverter x:Key="LengthToByteStringConverter"/>
+    <converters:LengthToByteStringConverter x:Key="LengthToByteStringConverter"/>
+    <converters:BooleanToEnumConverter x:Key="BooleanToEnumConverter"/>
+    <converters:IndexConverter x:Key="IndexConverter"/>
     <BooleanToVisibilityConverter x:Key="BoolVisibilityConverter" />
 
     <Geometry x:Key="CompletePathIcon">
@@ -220,7 +221,7 @@
                         <TextBlock.Text>
                             <Binding Path="FileSize"
                                  Mode="OneWay"
-                                 Converter="{StaticResource LengthToByteStringConverter}"
+                                 Converter="{x:Static converters:LengthToByteStringConverter.Instance}"
                                  ConverterParameter="{}{0:N1}"/>
                         </TextBlock.Text>
                     </TextBlock>

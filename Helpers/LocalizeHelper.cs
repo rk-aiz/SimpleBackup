@@ -1,18 +1,16 @@
-﻿using System;
+﻿using SimpleBackup.Properties;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using SimpleBackup.Properties;
-using System.Collections.Specialized;
-using System.Collections;
-using System.ComponentModel.Design;
+using SimpleBackup.Converters;
 
 namespace SimpleBackup.Helpers
 {
@@ -57,11 +55,13 @@ namespace SimpleBackup.Helpers
 
         private LocalizeHelper()
         {
+            Resources.Culture = CultureInfo.CurrentUICulture;
             FindLocalizedResourceFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
         }
 
         /// <summary>
-        /// 対応しているリソースファイルの言語リストを取得する
+        /// 対応しているリソースファイルの言語リストを取得して
+        /// CultureCollectionに格納する
         /// </summary>
         public void FindLocalizedResourceFiles(string location)
         {
@@ -80,7 +80,6 @@ namespace SimpleBackup.Helpers
         {
             return Task.Run(() =>
             {
-                Resources.Culture = CultureInfo.CurrentUICulture;
                 CultureCollection.Add(new CultureInfo("en-US", false));
 
                 var dirInfo = new DirectoryInfo(location);
@@ -109,18 +108,6 @@ namespace SimpleBackup.Helpers
             return Instance?._rm.GetString(key) ?? key;
         }
 
-        public static string GetEnumLocalizeDescription(object value)
-        {
-            FieldInfo fi = value.GetType().GetField(value.ToString());
-            if (fi == null) { return value.ToString(); }
-
-            var attributes = (DescriptionAttribute[])fi.GetCustomAttributes(
-                typeof(DescriptionAttribute), false);
-
-            return (attributes.Length > 0 && !string.IsNullOrEmpty(attributes[0].Description)) ?
-                attributes[0].Description : value.ToString();
-        }
-
         /// <summary>
         /// リソースのカルチャを変更する
         /// </summary>
@@ -135,51 +122,5 @@ namespace SimpleBackup.Helpers
             var oldCulture = new CultureInfo(oldCultureName);
             StatusHelper.UpdateStatus($"{GetString("String_Language")} : {oldCulture.DisplayName} -> {newCulture.DisplayName}");
         }
-    }
-
-    [TypeConverter(typeof(EnumDescriptionTypeConverter))]
-    public enum ToggleStateMessage
-    {
-        [LocalizedDescription("String_Off",
-        typeof(SimpleBackup.Properties.Resources))]
-        Off,
-
-        [LocalizedDescription("String_On",
-        typeof(SimpleBackup.Properties.Resources))]
-        On,
-    }
-
-    [TypeConverter(typeof(EnumDescriptionTypeConverter))]
-    public enum Priority
-    {
-        [LocalizedDescription("String_Lowest",
-            typeof(SimpleBackup.Properties.Resources))]
-            Lowest,
-        [LocalizedDescription("String_Below_Normal",
-            typeof(SimpleBackup.Properties.Resources))]
-            BelowNormal,
-        [LocalizedDescription("String_Normal",
-            typeof(SimpleBackup.Properties.Resources))]
-            Normal,
-        [LocalizedDescription("String_Above_Normal",
-            typeof(SimpleBackup.Properties.Resources))]
-            AboveNormal,
-        [LocalizedDescription("String_Highest",
-            typeof(SimpleBackup.Properties.Resources))]
-            Highest
-    }
-
-    [TypeConverter(typeof(EnumDescriptionTypeConverter))]
-    public enum TaskTrayMode
-    {
-        [LocalizedDescription("String_Show_Window_Only",
-            typeof(SimpleBackup.Properties.Resources))]
-        ShowWindowOnly,
-        [LocalizedDescription("String_Show_Window_And_TrayIcon",
-            typeof(SimpleBackup.Properties.Resources))]
-        ShowWindowAndTrayIcon,
-        [LocalizedDescription("String_Tray_Icon_Only",
-            typeof(SimpleBackup.Properties.Resources))]
-        TrayIconOnly
     }
 }
