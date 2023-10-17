@@ -23,7 +23,7 @@ namespace SimpleBackup.Converters
             return Binding.DoNothing;
         }
 
-        public string LengthToByteString(long length, string format = "{0:#,0.#}")
+        public static string LengthToByteString(long length, string format = "{0:#,0.#}")
         {
             if (length > 0)
             {

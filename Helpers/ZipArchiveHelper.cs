@@ -18,18 +18,13 @@ namespace SimpleBackup.Helpers
 
         public event ProgressChangedEventHandler ProgressChanged;
         private int _progress;
-
-        //Zipファイルに作成した項目数(ファイル数)
-        private int _entriesCount;
-        private int _totalTargetFiles;
-        private long _totalTargetDataSize;
-        private long _completedDataSize;
+        private long _completedLength;
 
         private int _bufferLength;
 
         private string _savePath;
-        private DirectoryInfo _baseDir;
-        private List<FileSystemInfo> _targetItems;
+        private FileSystemNode _baseDir;
+        private FileSystemList _targetList;
 
         private CancellationToken _cToken;
 
@@ -42,19 +37,15 @@ namespace SimpleBackup.Helpers
         /// <summary>
         /// ディレクトリからZipファイルを作成します
         /// </summary>
-        /// <param name="di">ソースとなるディレクトリ</param>
+        /// <param name="baseDir">ソースとなるディレクトリ</param>
         /// <param name="savePath">保存先</param>
         /// <param name="token">CancellationToken</param>
-        public ZipArchiveHelper(DirectoryInfo baseDir, List<FileSystemInfo> targetItems, string savePath, CancellationToken token)
+        public ZipArchiveHelper(FileSystemNode baseDir, FileSystemList targetList, string savePath, CancellationToken token)
         {
             _savePath = savePath;
             _baseDir = baseDir;
             _cToken = token;
-            _targetItems = targetItems;
-            //進捗を計算するためにソースとなるファイルサイズを累算する
-            DirectoryMeasure dm = new DirectoryMeasure(_baseDir.FullName, token);
-            _totalTargetFiles = dm.GetTotalCount();
-            _totalTargetDataSize = dm.GetTotalSize();
+            _targetList = targetList;
             //StreamReaderのバッファーサイズ
             _bufferLength = 16 * 1024;
         }
@@ -66,7 +57,6 @@ namespace SimpleBackup.Helpers
         {
             try
             {
-                _entriesCount = 0;
                 using (_archive = ZipFile.Open(_savePath, ZipArchiveMode.Create))
                 {
                     CreateEntries();
@@ -87,14 +77,14 @@ namespace SimpleBackup.Helpers
         {
             Exception exception = null;
             //ディレクトリのエントリ追加
-            foreach (FileSystemInfo item in _targetItems)
+            foreach (FileSystemNode item in _targetList.Items)
             {
                 if (_cToken.IsCancellationRequested) { throw new OperationCanceledException(); }
                 try
                 {
-                    if (File.GetAttributes(item.FullName).HasFlag(FileAttributes.Directory))
+                    if (item.IsDirectory)
                     {
-                        CreateDirectoryEntry(item as DirectoryInfo);
+                        CreateDirectoryEntry(item);
                     }
                 }
                 catch (Exception ex)
@@ -103,14 +93,14 @@ namespace SimpleBackup.Helpers
                 }
             }
 
-            foreach (FileSystemInfo item in _targetItems)
+            foreach (FileSystemNode item in _targetList.Items)
             {
                 if (_cToken.IsCancellationRequested) { throw new OperationCanceledException(); }
                 try
                 {
-                    if (!File.GetAttributes(item.FullName).HasFlag(FileAttributes.Directory))
+                    if (item.IsDirectory == false)
                     {
-                        CreateFileEntry(item as FileInfo);
+                        CreateFileEntry(item);
                     }
                 }
                 catch (Exception ex)
@@ -121,11 +111,12 @@ namespace SimpleBackup.Helpers
 
             if (exception != null) { throw exception; }
         }
-        private void CreateDirectoryEntry(DirectoryInfo file)
+
+        private void CreateDirectoryEntry(FileSystemNode directory)
         {
             try
             {
-                _archive.CreateEntry(GetRelativePath(_baseDir, file));
+                _archive.CreateEntry(directory.GetRelativePath(_baseDir));
             }
             catch (Exception ex)
             {
@@ -133,13 +124,13 @@ namespace SimpleBackup.Helpers
             }
         }
 
-        private void CreateFileEntry(FileInfo file)
+        private void CreateFileEntry(FileSystemNode file)
         {
             try
             {
                 using (var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    ZipArchiveEntry entry = _archive.CreateEntry(GetRelativePath(_baseDir, file));
+                    ZipArchiveEntry entry = _archive.CreateEntry(file.GetRelativePath(_baseDir));
                     using (var entryStream = entry.Open())
                     {
                         byte[] buffer = new byte[_bufferLength];
@@ -153,8 +144,8 @@ namespace SimpleBackup.Helpers
                             entryStream.Write(buffer, 0, read);
 
                             //進捗状況の計算
-                            _completedDataSize += read;
-                            var p = (int)(100 * ((float)_completedDataSize / (float)_totalTargetDataSize));
+                            _completedLength += read;
+                            var p = (int)(100 * ((float)_completedLength / (float)_targetList.TotalLength));
                             if (p != _progress)
                             {
                                 _progress = p;
@@ -167,74 +158,8 @@ namespace SimpleBackup.Helpers
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"{file.Name} :Open FileStream Failed {ex.ToString()}");
+                Debug.WriteLine($"{file.FullName} :Open FileStream Failed {ex.ToString()}");
                 throw ex;
-            }
-        }
-
-        /// <summary>
-        /// ディレクトリ内のファイルをZipアーカイブに追加し、子ディレクトリがあった場合、
-        /// そのディレクトリを引数にして自身を再帰呼び出しする
-        /// </summary>
-        /// <param name="targetDir">探索するディレクトリ</param>
-        /// <exception cref="OperationCanceledException">CancellationTokenによってキャンセル要求があった場合中断する</exception>
-        public void CreateEntryRecurse(DirectoryInfo dir)
-        {
-            foreach (FileInfo file in dir.GetFiles())
-            {
-                try
-                {
-                    _entriesCount++;
-
-                    using (var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    {
-                        ZipArchiveEntry entry = _archive.CreateEntry(GetRelativePath(_baseDir, file));
-                        using (var entryStream = entry.Open())
-                        {
-                            byte[] buffer = new byte[_bufferLength];
-
-                            int read;
-
-                            //CancellationTokenの確認 && StreamReaderがファイル末尾に到達していないかの確認
-                            while ((_cToken.IsCancellationRequested == false) &&
-                                (read = fs.Read(buffer, 0, buffer.Length)) > 0)
-                            {
-                                entryStream.Write(buffer, 0, read);
-
-                                //進捗状況の計算
-                                _completedDataSize += read;
-                                var p = (int)(100 * ((float)_completedDataSize / (float)_totalTargetDataSize));
-                                if (p != _progress)
-                                {
-                                    _progress = p;
-                                    OnProgressChanged(_progress);
-                                }
-                            }
-                        }
-                    }
-                    if (_cToken.IsCancellationRequested) { throw new OperationCanceledException(); }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"{file.Name} :Open FileStream Failed {ex.ToString()}");
-                    throw ex;
-                }
-            }
-
-            //サブディレクトリを探索して、再帰呼び出し
-            foreach (DirectoryInfo childDir in dir.GetDirectories())
-            {
-                if (_cToken.IsCancellationRequested) { throw new OperationCanceledException(); }
-
-                try
-                {
-                    _archive.CreateEntry(GetRelativePath(_baseDir, childDir));
-                    CreateEntryRecurse(childDir);
-                }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
             }
         }
 
@@ -252,28 +177,6 @@ namespace SimpleBackup.Helpers
                     //StatusHelper.UpdateStatus(ex.Message);
                 }
             }, null);
-        }
-
-        private static string GetRelativePath(FileSystemInfo relativeTo, FileSystemInfo target)
-        {
-            string basePath = GetFullNameWithDirectorySeparator(relativeTo);
-            string fullPath = GetFullNameWithDirectorySeparator(target);
-
-            if (fullPath.IndexOf(basePath, StringComparison.OrdinalIgnoreCase) == 0)
-                return fullPath.Remove(0, basePath.Length);
-            else
-                return String.Empty;
-        }
-
-        private static string GetFullNameWithDirectorySeparator(FileSystemInfo fi)
-        {
-            var path = fi.FullName;
-            if (fi.Attributes.HasFlag(FileAttributes.Directory) &&
-                path.LastOrDefault() != Path.DirectorySeparatorChar
-            )
-                return path + Path.DirectorySeparatorChar;
-            else
-                return path;
         }
     }
 }

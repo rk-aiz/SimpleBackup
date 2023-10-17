@@ -37,7 +37,7 @@ namespace SimpleBackup
             {
                 Interval = TimeSpan.FromMinutes(_timerInterval)
             };
-            _timer.Tick += (s, e) => { ViewModel.Instance.CreateBackupTask(_target, _save); };
+            _timer.Tick += (s, e) => ViewModel.Instance.CreateBackupTask(_target, _save, true);
             _timer.Start();
         }
 

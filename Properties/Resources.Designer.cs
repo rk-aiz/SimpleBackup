@@ -169,6 +169,15 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   The backup task canceled. に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Backup_Task_Canceled {
+            get {
+                return ResourceManager.GetString("String_Backup_Task_Canceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Backup Thread Priority に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Backup_Thread_Priority {
@@ -205,11 +214,29 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Confirm に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Confirm {
+            get {
+                return ResourceManager.GetString("String_Confirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Contains に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Contains {
             get {
                 return ResourceManager.GetString("String_Contains", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Do you want to continue? に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Do_You_Want_To_Continue {
+            get {
+                return ResourceManager.GetString("String_Do_You_Want_To_Continue", resourceCulture);
             }
         }
         
@@ -444,6 +471,24 @@ namespace SimpleBackup.Properties {
         public static string String_Size {
             get {
                 return ResourceManager.GetString("String_Size", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Target size に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Target_Size {
+            get {
+                return ResourceManager.GetString("String_Target_Size", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   The backup target size is very large. に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Target_Size_Very_Large {
+            get {
+                return ResourceManager.GetString("String_Target_Size_Very_Large", resourceCulture);
             }
         }
         

@@ -153,6 +153,9 @@
   <data name="String_Backup_target_does_not_exist" xml:space="preserve">
     <value>The process was canceled because the backup target does not exist.</value>
   </data>
+  <data name="String_Backup_Task_Canceled" xml:space="preserve">
+    <value>The backup task canceled.</value>
+  </data>
   <data name="String_Backup_Thread_Priority" xml:space="preserve">
     <value>Backup Thread Priority</value>
   </data>
@@ -165,8 +168,14 @@
   <data name="String_Completed" xml:space="preserve">
     <value>Completed</value>
   </data>
+  <data name="String_Confirm" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
   <data name="String_Contains" xml:space="preserve">
     <value>Contains</value>
+  </data>
+  <data name="String_Do_You_Want_To_Continue" xml:space="preserve">
+    <value>Do you want to continue?</value>
   </data>
   <data name="String_Failed" xml:space="preserve">
     <value>Failed</value>
@@ -245,6 +254,12 @@
   </data>
   <data name="String_Size" xml:space="preserve">
     <value>Size</value>
+  </data>
+  <data name="String_Target_Size" xml:space="preserve">
+    <value>Target size</value>
+  </data>
+  <data name="String_Target_Size_Very_Large" xml:space="preserve">
+    <value>The backup target size is very large.</value>
   </data>
   <data name="String_Tray_Icon_Only" xml:space="preserve">
     <value>Tray icon only.</value>

@@ -1,4 +1,5 @@
-﻿using SimpleBackup.Events;
+﻿using SimpleBackup.Converters;
+using SimpleBackup.Events;
 using SimpleBackup.Extensions;
 using SimpleBackup.Helpers;
 using SimpleBackup.Properties;
@@ -11,8 +12,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Forms;
 using System.Windows.Threading;
+using static System.Windows.Forms.AxHost;
 
 namespace SimpleBackup
 {
@@ -28,7 +32,7 @@ namespace SimpleBackup
 
         private ViewModel()
         {
-            CBTSource = new FileSystemTreeNode(Dispatcher);
+            CBTSource = new FileSystemTreeNode(Dispatcher, true);
             BindingOperations.EnableCollectionSynchronization(BackupHistory, _backupHistorySync);
             MeasureBackupTargetDir();
             UpdateDestinationDirveInfo();
@@ -49,15 +53,10 @@ namespace SimpleBackup
             set
             {
                 _schedulerEnabled = value;
-
                 if (_schedulerEnabled == true)
                 {
-                    BackupScheduler = new BackupScheduler(
-                        BackupTargetDir,
-                        SaveDir,
-                        BackupInterval
-                    );
                     StatusHelper.RequestLockSetting();
+                    SetupBackupScheduler();
                 }
                 else
                 {
@@ -66,6 +65,25 @@ namespace SimpleBackup
                 }
 
                 OnPropertyChanged("SchedulerEnabled");
+            }
+        }
+
+        public async void SetupBackupScheduler()
+        {
+            var targetList = await CBTSource.GetCheckedItemsAsync();
+
+            if (validateTargetLength(targetList.TotalLength))
+            {
+                BackupScheduler = new BackupScheduler(
+                    BackupTargetDir,
+                    SaveDir,
+                    BackupInterval
+                );
+            }
+            else
+            {
+                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_Task_Canceled"));
+                SchedulerEnabled = false;
             }
         }
 
@@ -310,7 +328,7 @@ namespace SimpleBackup
             CreateBackupTask(BackupTargetDir, SaveDir);
         }
 
-        public async void CreateBackupTask(string sourcePath, string saveDir)
+        public async void CreateBackupTask(string sourcePath, string saveDir, bool force = false)
         {
             //バックアップ対象が存在しない場合中止
             if (String.IsNullOrWhiteSpace(sourcePath) || Directory.Exists(sourcePath) == false)
@@ -332,6 +350,9 @@ namespace SimpleBackup
             //同名バックアップファイルが既に存在する場合中止
             if (File.Exists(savePath)) { return; }
 
+            //バックアップ処理中は設定変更できないようにする
+            StatusHelper.RequestLockSetting();
+
             RemoveFailedBackup();
 
             BackupTask bt = new BackupTask((ThreadPriority)Priority)
@@ -346,17 +367,59 @@ namespace SimpleBackup
             var task = Task.Run(() =>
             {
                 lock (_backupHistoryLockObj)
-                    lock (_backupHistorySync)
-                    {
-                        BackupHistory.Add(bt);
-                    }
+                lock (_backupHistorySync)
+                {
+                    BackupHistory.Add(bt);
+                }
             });
 
             //バックアップ項目をリストアップ
-            bt.TargetItems = await Dispatcher.InvokeAsync(() => CBTSource.GetCheckedItems());
+            bt.TargetList = await CBTSource.GetCheckedItemsAsync();
+
+            bool validation;
+            if (!force)
+            {
+                validation = validateTargetLength(bt.TargetList.TotalLength);
+            }
+            else
+            {
+                validation = true;
+            }
 
             await task;
-            bt.Backup();
+
+            if (validation)
+            {
+                bt.Backup();
+            }
+            else
+            {
+                StatusHelper.RequestUnlockSetting();
+                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_Task_Canceled"));
+            }
+        }
+
+        private long _threatholdLength = 8589934592;
+        private bool validateTargetLength(long length)
+        {
+            if (length > _threatholdLength)
+            {
+                // Initializes the variables to pass to the MessageBox.Show method.
+                string message = LocalizeHelper.GetString("String_Target_Size_Very_Large") + "\n";
+                message += LocalizeHelper.GetString("String_Do_You_Want_To_Continue") + "\n";
+                message += $"{LocalizeHelper.GetString("String_Target_Size")} : {LengthToByteStringConverter.LengthToByteString(length)}";
+                string caption = LocalizeHelper.GetString("Confirm");
+                MessageBoxButtons buttons = MessageBoxButtons.OKCancel;
+                DialogResult result;
+
+                result = MessageBox.Show(message, caption, buttons);
+                if (result != System.Windows.Forms.DialogResult.OK)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public void RemoveFailedBackup()

@@ -6,6 +6,11 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Threading;
 
 namespace SimpleBackup
@@ -14,11 +19,13 @@ namespace SimpleBackup
     {
         private bool _IsExpanded = false;
         private bool? _IsChecked = true;
-        private string _Name = "";
+        private string _Name = string.Empty;
         private long _length = -1;
         private FileSystemTreeNode _Parent = null;
-        private FileAttributes _Attributes = FileAttributes.Normal;
+        private bool _isDirectory;
         public bool NotDummy { get; set; } = true;
+
+        public bool IsDirectory { get { return _isDirectory; } }
 
         public bool IsExpanded
         {
@@ -51,12 +58,6 @@ namespace SimpleBackup
             set { _Name = value; OnPropertyChanged("Text"); }
         }
 
-        public FileAttributes Attributes
-        {
-            get { return _Attributes; }
-            set { _Attributes = value; OnPropertyChanged("Attrubutes"); }
-        }
-
         public long Length
         {
             get { return _length; }
@@ -69,14 +70,17 @@ namespace SimpleBackup
             set { _Parent = value; OnPropertyChanged("Parent"); }
         }
 
-        public ObservableCollection<FileSystemTreeNode> Children { get; private set; } = new ObservableCollection<FileSystemTreeNode>();
+        private object _lockObject = new object();
+        public ObservableCollection<FileSystemTreeNode> Children { get; } = new ObservableCollection<FileSystemTreeNode>();
         private Dispatcher _dp;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public FileSystemTreeNode(Dispatcher dp)
+        public FileSystemTreeNode(Dispatcher dp, bool isDir)
         {
             _dp = dp;
+            _isDirectory = isDir;
+            BindingOperations.EnableCollectionSynchronization(Children, _lockObject);
         }
 
         private void OnPropertyChanged(string name)
@@ -87,17 +91,19 @@ namespace SimpleBackup
 
         public void Add(FileSystemTreeNode child)
         {
-            if (null == Children)
-            {
-                Children = new ObservableCollection<FileSystemTreeNode>();
-            }
             child.Parent = this;
-            Children.Add(child);
+            lock (_lockObject)
+            {
+                Children.Add(child);
+            }
         }
 
         public void Clear()
         {
-            Children?.Clear();
+            lock (_lockObject)
+            {
+                Children?.Clear();
+            }
         }
 
         /// <summary>
@@ -149,13 +155,11 @@ namespace SimpleBackup
 
             if (withDirectorySeparatorChar)
             {
-                if (File.GetAttributes(path).HasFlag(FileAttributes.Directory) &&
-                    Name.LastOrDefault() != Path.DirectorySeparatorChar)
+                if (IsDirectory && Name.LastOrDefault() != Path.DirectorySeparatorChar)
                 {
                     return path + Path.DirectorySeparatorChar.ToString();
                 }
             }
-
             return path;
         }
 
@@ -177,52 +181,52 @@ namespace SimpleBackup
             if (!di.Exists) { return; }
 
             var list = new List<FileSystemTreeNode>();
-            //ファイル項目取得
-            foreach (FileInfo fi in di.EnumerateFiles("*"))
+            try
             {
-                try
+                //ファイル項目取得
+                foreach (FileInfo fi in di.EnumerateFiles("*"))
                 {
-                    list.Add(new FileSystemTreeNode(_dp)
+                    list.Add(new FileSystemTreeNode(_dp, false)
                     {
                         Name = fi.Name,
                         Length = fi.Length,
-                        Attributes = File.GetAttributes(fi.FullName),
                         IsChecked = this.IsChecked,
                         Parent = this
                     });
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex);
-                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
             }
             //ディレクトリ項目取得
-            foreach (DirectoryInfo child in di.EnumerateDirectories("*"))
+            try
             {
-                try
+                foreach (DirectoryInfo child in di.EnumerateDirectories("*"))
                 {
-                    var node = new FileSystemTreeNode(_dp)
+                    var node = new FileSystemTreeNode(_dp, true)
                     {
                         Name = child.Name,
-                        Attributes = File.GetAttributes(child.FullName),
                         IsChecked = this.IsChecked,
                         Parent = this
                     };
                     //子にダミーを追加してExpand可能にする
-                    node.Add(new FileSystemTreeNode(_dp) { NotDummy = false });
+                    node.Add(new FileSystemTreeNode(_dp, true) { NotDummy = false });
                     list.Add(node);
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex);
-                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
             }
 
             if (list.Count > 0)
             {
                 Clear();
-                if (Children == null) { Children = new ObservableCollection<FileSystemTreeNode>(); }
-                Children.AddRange(list);
+                lock (_lockObject)
+                {
+                    Children.AddRange(list);
+                }
             }
         }
 
@@ -263,13 +267,15 @@ namespace SimpleBackup
         /// <summary>
         /// IsChecked == true, nullのアイテムを取得します
         /// </summary>
-        /// <returns></returns>
-        public List<FileSystemInfo> GetCheckedItems()
+        public Task<FileSystemList> GetCheckedItemsAsync()
         {
-            return GetCheckedItemsCore(this);
+            return Task.Run(() => GetCheckedItemsCore(this));
         }
 
-        public List<FileSystemInfo> GetCheckedItemsCore(FileSystemTreeNode node)
+        private int _maxThread = 16;
+        private int _thread = 0;
+
+        public FileSystemList GetCheckedItemsCore(FileSystemTreeNode node)
         {
             if (node.CheckHaveDummy())
             {
@@ -277,31 +283,45 @@ namespace SimpleBackup
             }
             if (node.Children == null || node.Children.Count == 0) { return null; }
 
-            List<FileSystemInfo> items = new List<FileSystemInfo>();
+            FileSystemList fsl = new FileSystemList();
 
             //「チェックされている」項目を抜粋
             var checkedNodes = node.Children.Where(item => (item.IsChecked != false));
 
-            //「ファイル」項目を追加
-            items.AddRange(checkedNodes.Where(item => !File.GetAttributes(item.GetPath()).HasFlag(FileAttributes.Directory))
-                                       .Select(item => new FileInfo(item.GetPath())));
+            var fileNodes = checkedNodes.Where(item => File.Exists(item.GetPath()));
+            fsl.AddFileNodes(fileNodes);
 
-            //「ディレクトリ」項目を追加、再帰探査
-            foreach (var dirNode in checkedNodes.Where(item => File.GetAttributes(item.GetPath()).HasFlag(FileAttributes.Directory)))
+            var dirNodes = checkedNodes.Where(item => Directory.Exists(item.GetPath()));
+            fsl.AddDirectoryNodes(dirNodes);
+
+            //「ディレクトリ」項目を再帰探査
+
+            if (checkedNodes.Take(2)?.Count() > 1 && _thread <= _maxThread)
             {
-                items.Add(new DirectoryInfo(dirNode.GetPath()));
-                if (GetCheckedItemsCore(dirNode) is List<FileSystemInfo> childItems)
+                Parallel.ForEach(dirNodes, dir =>
                 {
-                    items.AddRange(childItems);
+                    Interlocked.Increment(ref _thread);
+                    if (GetCheckedItemsCore(dir) is FileSystemList childList)
+                    {
+                        fsl.Add(childList);
+                    }
+                });
+            }
+            else
+            {
+                foreach (var dirNode in checkedNodes.Where(item => item.IsDirectory))
+                {
+                    if (GetCheckedItemsCore(dirNode) is FileSystemList childList)
+                    {
+                        fsl.Add(childList);
+                    }
                 }
             }
-
-            return items;
+            return fsl;
         }
         /// <summary>
-        /// 絶対パスを指定して、指定項目をIsChecked = falseにします
+        /// 絶対パス(の列挙)を指定して、指定項目をIsChecked = falseにする
         /// </summary>
-        /// <param name="ignoreItems"></param>
         public void SetIgnoreItems(IEnumerable<string> ignoreItems)
         {
             if (ignoreItems == null) { return; }
@@ -320,10 +340,12 @@ namespace SimpleBackup
 
         public static void TrySetIgnore(FileSystemTreeNode node, string path, bool value)
         {
+            //pathがただしいパスであるかの確認
             if (path.IndexOf(node.GetPath(), StringComparison.OrdinalIgnoreCase) == 0)
             {
                 string relativePath = path.Remove(0, node.GetPath(true).Length);
 
+                //pathがこのNodeを示している場合IsCheckedに代入
                 if (relativePath == Path.DirectorySeparatorChar.ToString() ||
                     String.IsNullOrEmpty(relativePath))
                 {

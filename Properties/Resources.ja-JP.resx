@@ -153,6 +153,9 @@
   <data name="String_Backup_target_does_not_exist" xml:space="preserve">
     <value>バックアップ対象が存在しないため、処理がキャンセルされました。</value>
   </data>
+  <data name="String_Backup_Task_Canceled" xml:space="preserve">
+    <value>バックアップ処理はキャンセルされました。</value>
+  </data>
   <data name="String_Backup_Thread_Priority" xml:space="preserve">
     <value>バックアップスレッド優先度</value>
   </data>
@@ -165,8 +168,14 @@
   <data name="String_Completed" xml:space="preserve">
     <value>完了</value>
   </data>
+  <data name="String_Confirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
   <data name="String_Contains" xml:space="preserve">
     <value>内容</value>
+  </data>
+  <data name="String_Do_You_Want_To_Continue" xml:space="preserve">
+    <value>続行しますか？</value>
   </data>
   <data name="String_Failed" xml:space="preserve">
     <value>失敗</value>
@@ -245,6 +254,12 @@
   </data>
   <data name="String_Size" xml:space="preserve">
     <value>サイズ</value>
+  </data>
+  <data name="String_Target_Size" xml:space="preserve">
+    <value>対象のサイズ</value>
+  </data>
+  <data name="String_Target_Size_Very_Large" xml:space="preserve">
+    <value>バックアップ対象のサイズが非常に大きいです。</value>
   </data>
   <data name="String_Tray_Icon_Only" xml:space="preserve">
     <value>タスクトレイアイコンのみ</value>

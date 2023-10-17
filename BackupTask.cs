@@ -108,7 +108,7 @@ namespace SimpleBackup
         }
 
         [JsonIgnore]
-        public List<FileSystemInfo> TargetItems { get; set; }
+        public FileSystemList TargetList = null;
 
         //バックアップ処理中のロック
         private CancellationTokenSource cTokenSource;
@@ -140,15 +140,12 @@ namespace SimpleBackup
             StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_process_in_progress"));
             StatusHelper.SetProgressStatus(true);
 
-            //バックアップ処理中は設定変更できないようにする
-            StatusHelper.RequestLockSetting();
-
             //Destination Path
             _savePath = System.IO.Path.Combine(SaveDir, FileName);
-            DirectoryInfo diTarget = new DirectoryInfo(SourcePath);
             cTokenSource = new CancellationTokenSource();
 
-            var zah = new Helpers.ZipArchiveHelper(diTarget, TargetItems, _savePath, cTokenSource.Token);
+            var diTarget = new FileSystemNode(SourcePath, true);
+            var zah = new Helpers.ZipArchiveHelper(diTarget, TargetList, _savePath, cTokenSource.Token);
 
             var dp = Dispatcher.CurrentDispatcher;
             zah.ProgressChanged += (s, e) => dp.InvokeAsync(() => ProgressChangedCallback(s, e));
