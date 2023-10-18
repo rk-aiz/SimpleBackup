@@ -473,10 +473,14 @@ namespace SimpleBackup
             {
                 await Dispatcher.InvokeAsync(() =>
                 {
+                    var backupHistory = jsObj.BackupHistory.Where(item =>
+                    {
+                        return item.SaveDir != null && item.FileName != null && File.Exists(Path.Combine(item.SaveDir, item.FileName));
+                    });
                     lock (_backupHistoryLockObj)
                     {
                         BackupHistory.Clear();
-                        BackupHistory.AddRange(jsObj.BackupHistory);
+                        BackupHistory.AddRange(backupHistory);
                     }
                 }, DispatcherPriority.DataBind);
             }
