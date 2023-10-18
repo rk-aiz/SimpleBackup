@@ -147,11 +147,17 @@
   <data name="String_Backup_process_in_progress" xml:space="preserve">
     <value>Backup process in progress.</value>
   </data>
+  <data name="String_Backup_Settings" xml:space="preserve">
+    <value>Backup Settings</value>
+  </data>
   <data name="String_Backup_Source" xml:space="preserve">
     <value>Backup Source</value>
   </data>
   <data name="String_Backup_target_does_not_exist" xml:space="preserve">
     <value>The process was canceled because the backup target does not exist.</value>
+  </data>
+  <data name="String_Backup_Target_Size_Confirm" xml:space="preserve">
+    <value>Confirm when backup target is very large</value>
   </data>
   <data name="String_Backup_Task_Canceled" xml:space="preserve">
     <value>The backup task canceled.</value>
@@ -186,6 +192,9 @@
   <data name="String_Free_Space" xml:space="preserve">
     <value>Free Space</value>
   </data>
+  <data name="String_Free_Space_Check" xml:space="preserve">
+    <value>The backup target is larger than the available free space on the destination storage.</value>
+  </data>
   <data name="String_Highest" xml:space="preserve">
     <value>Highest</value>
   </data>
@@ -211,13 +220,16 @@
     <value>On</value>
   </data>
   <data name="String_Open_Backup_Source_Folder" xml:space="preserve">
-    <value>Open Source Folder</value>
+    <value>Open the source folder.</value>
   </data>
   <data name="String_Open_Save_Location" xml:space="preserve">
-    <value>Open Save Location</value>
+    <value>Open the destination to save to.</value>
   </data>
   <data name="String_Positive_Integer_Only" xml:space="preserve">
-    <value>Positive Integer Only</value>
+    <value>Positive integer only</value>
+  </data>
+  <data name="String_Positive_Number_Only" xml:space="preserve">
+    <value>Positive Number Only</value>
   </data>
   <data name="String_Processing" xml:space="preserve">
     <value>Processing</value>
@@ -232,7 +244,7 @@
     <value>Save Location</value>
   </data>
   <data name="String_Save_location_does_not_exist" xml:space="preserve">
-    <value>The process was canceled because location where to save does not exist.</value>
+    <value>The process was canceled because the storage location does not exist.</value>
   </data>
   <data name="String_Scheduled_Backup" xml:space="preserve">
     <value>Scheduled Backup</value>

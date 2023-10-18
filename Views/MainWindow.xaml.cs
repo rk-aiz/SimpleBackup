@@ -85,6 +85,17 @@ namespace SimpleBackup.Views
             }
         }
 
+        private void OptionPanel_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!(sender is StackPanel sp)) { return; }
+            if (!sp.IsMouseDirectlyOver) { return; }
+
+            if (FocusManager.GetFocusedElement(this) is TextBox)
+            {
+                Keyboard.ClearFocus();
+            }
+        }
+
         //TextBoxがキーボードフォーカスを失ったときにValidationErrorがあった場合
         //バインディングソースの値に戻す
         private void TextBox_LostKeyboardFocus(object sender, RoutedEventArgs e)

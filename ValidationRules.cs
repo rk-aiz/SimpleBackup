@@ -23,11 +23,28 @@ namespace SimpleBackup
         }
     }
 
+    class PositiveNumberRule : ValidationRule
+    {
+        private const ValidationMessage MESSAGE = ValidationMessage.PositiveNumberOnly;
+        public override ValidationResult Validate(object value, CultureInfo cultureInfo)
+        {
+            if (float.TryParse(value.ToString(), out float res) && 0 < res)
+            {
+                return ValidationResult.ValidResult;
+            }
+            else
+                return new ValidationResult(false, MESSAGE);
+        }
+    }
+
     [TypeConverter(typeof(EnumDescriptionTypeConverter))]
     public enum ValidationMessage
     {
         [LocalizedDescription("String_Positive_Integer_Only",
         typeof(SimpleBackup.Properties.Resources))]
         PositiveIntegerOnly,
+        [LocalizedDescription("String_Positive_Number_Only",
+        typeof(SimpleBackup.Properties.Resources))]
+        PositiveNumberOnly,
     }
 }

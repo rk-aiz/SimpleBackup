@@ -207,7 +207,7 @@ namespace SimpleBackup
             Progress = e.Progress;
         }
 
-        private void OnBackupCompleted()
+        public void OnBackupCompleted()
         {
             BackupCompleted?.Invoke(this, new BackupCompletedEvent(this));
         }
@@ -219,7 +219,17 @@ namespace SimpleBackup
 
         public void RequestCancel()
         {
-            cTokenSource?.Cancel();
+            if (cTokenSource != null)
+            {
+                cTokenSource.Cancel();
+            }
+            else
+            {
+                Status = BackupTaskStatus.Failed;
+                StatusHelper.RequestUnlockSetting();
+                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_Task_Canceled"));
+                OnBackupCompleted();
+            }
         }
 
         ~BackupTask()

@@ -139,5 +139,31 @@ namespace SimpleBackup.Properties {
                 this["TaskTrayMode"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("8589934592")]
+        [global::System.Configuration.SettingsManageabilityAttribute(global::System.Configuration.SettingsManageability.Roaming)]
+        public double ThreatholdLength {
+            get {
+                return ((double)(this["ThreatholdLength"]));
+            }
+            set {
+                this["ThreatholdLength"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.SettingsManageabilityAttribute(global::System.Configuration.SettingsManageability.Roaming)]
+        public bool TargetSizeValidation {
+            get {
+                return ((bool)(this["TargetSizeValidation"]));
+            }
+            set {
+                this["TargetSizeValidation"] = value;
+            }
+        }
     }
 }

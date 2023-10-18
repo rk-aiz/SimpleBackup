@@ -52,6 +52,23 @@
                 </CollectionViewSource.SortDescriptions>
             </CollectionViewSource>
 
+            <Style TargetType="{x:Type TextBox}">
+                <Style.Triggers>
+                    <Trigger Property="Validation.HasError" Value="true">
+                        <Setter Property="ToolTipService.ToolTip" Value="{
+                                Binding Path=(Validation.Errors)[0].ErrorContent,
+                                RelativeSource={RelativeSource Self}}"/>
+                        <Setter Property="ToolTip.IsOpen" Value="True"/>
+                        <Setter Property="Background" Value="#FF8888"/>
+                    </Trigger>
+                    <Trigger Property="TextBox.IsReadOnly" Value="true">
+                        <Setter Property="Foreground" Value="#404040"/>
+                        <Setter Property="Background" Value="#D0D0D0"/>
+                        <Setter Property="Cursor" Value="Arrow"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
         </Grid.Resources>
         
         <Grid.RowDefinitions>
@@ -256,23 +273,6 @@
             Margin="0, 5"
             LastChildFill="False">
             <DockPanel.Resources>
-                <Style TargetType="{x:Type TextBox}">
-                    <Style.Triggers>
-                        <Trigger Property="Validation.HasError" Value="true">
-                            <Setter Property="ToolTipService.ToolTip" Value="{
-                                Binding Path=(Validation.Errors)[0].ErrorContent,
-                                RelativeSource={RelativeSource Self}}"/>
-                            <Setter Property="ToolTip.IsOpen" Value="True"/>
-                            <Setter Property="Background" Value="#FF8888"/>
-                        </Trigger>
-                        <Trigger Property="TextBox.IsReadOnly" Value="true">
-                            <Setter Property="Foreground" Value="#404040"/>
-                            <Setter Property="Background" Value="#D0D0D0"/>
-                            <Setter Property="Cursor" Value="Arrow"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-
                 <Style TargetType="{x:Type TextBlock}">
                     <Setter Property="TextWrapping" Value="Wrap"/>
                     <Setter Property="TextAlignment" Value="Center"/>
@@ -431,7 +431,8 @@
             Grid.RowSpan="2" Grid.ColumnSpan="2"
             TextElement.FontSize="15"
             Background="#FFFFFF"
-            Visibility="{Binding IsChecked, ElementName=SettingPanelButton, Converter={StaticResource BoolVisibilityConverter}}">
+            Visibility="{Binding IsChecked, ElementName=SettingPanelButton, Converter={StaticResource BoolVisibilityConverter}}"
+            MouseDown="OptionPanel_MouseDown">
             <StackPanel.Resources>
                 <Style TargetType="{x:Type GroupBox}">
                     <Setter Property="Margin" Value="20, 5"/>
@@ -497,6 +498,46 @@
                         </ComboBox.SelectedValue>
                     </ComboBox>
                 </Grid>
+            </GroupBox>
+
+            <GroupBox
+                Header="{local:CultureAwareBinding Key=String_Backup_Settings}">
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    Margin="10">
+                    <CheckBox
+                        x:Name="TargetSizeValidCheckBox"
+                        IsChecked="{Binding TargetSizeValidation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        VerticalContentAlignment="Center">
+                        <TextBlock
+                            Margin="0"
+                            Text="{local:CultureAwareBinding Key=String_Backup_Target_Size_Confirm, StringFormat={}{0} :}"/>
+                    </CheckBox>
+                    <StackPanel
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Margin="10">
+                        <TextBox
+                            IsEnabled="{Binding IsChecked, ElementName=TargetSizeValidCheckBox}"
+                            TextAlignment="Right"
+                            Width="60"
+                            TextWrapping="NoWrap"
+                            InputMethod.IsInputMethodEnabled="False"
+                            LostKeyboardFocus="TextBox_LostKeyboardFocus">
+                            <TextBox.Text>
+                                <Binding Path="ThreatholdLength"
+                                         Converter="{x:Static converters:LengthToGigaByteConverter.Instance}"
+                                         Mode="TwoWay"
+                                         UpdateSourceTrigger="PropertyChanged">
+                                    <Binding.ValidationRules>
+                                        <local:PositiveNumberRule/>
+                                    </Binding.ValidationRules>
+                                </Binding>
+                            </TextBox.Text>
+                        </TextBox>
+                        <TextBlock Text="GB"/>
+                    </StackPanel>
+                </StackPanel>
             </GroupBox>
         </StackPanel>
         

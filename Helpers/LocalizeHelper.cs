@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,6 +45,7 @@ namespace SimpleBackup.Helpers
                 try
                 {
                     CultureInfo.CurrentUICulture = value;
+                    CultureInfo.CurrentCulture = value;
                     Settings.Default.Locale = value.Name;
                     ChangeCulture(value);
                 }

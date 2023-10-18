@@ -151,6 +151,15 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   Backup Settings に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Backup_Settings {
+            get {
+                return ResourceManager.GetString("String_Backup_Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Backup Source に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Backup_Source {
@@ -165,6 +174,15 @@ namespace SimpleBackup.Properties {
         public static string String_Backup_target_does_not_exist {
             get {
                 return ResourceManager.GetString("String_Backup_target_does_not_exist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Confirm when backup target is very large に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Backup_Target_Size_Confirm {
+            get {
+                return ResourceManager.GetString("String_Backup_Target_Size_Confirm", resourceCulture);
             }
         }
         
@@ -268,6 +286,15 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
+        ///   The backup target is larger than the available free space on the destination storage. に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Free_Space_Check {
+            get {
+                return ResourceManager.GetString("String_Free_Space_Check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Highest に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Highest {
@@ -340,7 +367,7 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
-        ///   Open Source Folder に類似しているローカライズされた文字列を検索します。
+        ///   Open the source folder. に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Open_Backup_Source_Folder {
             get {
@@ -349,7 +376,7 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
-        ///   Open Save Location に類似しているローカライズされた文字列を検索します。
+        ///   Open the destination to save to. に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Open_Save_Location {
             get {
@@ -358,11 +385,20 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
-        ///   Positive Integer Only に類似しているローカライズされた文字列を検索します。
+        ///   Positive integer only に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Positive_Integer_Only {
             get {
                 return ResourceManager.GetString("String_Positive_Integer_Only", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Positive Number Only に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string String_Positive_Number_Only {
+            get {
+                return ResourceManager.GetString("String_Positive_Number_Only", resourceCulture);
             }
         }
         
@@ -403,7 +439,7 @@ namespace SimpleBackup.Properties {
         }
         
         /// <summary>
-        ///   The process was canceled because location where to save does not exist. に類似しているローカライズされた文字列を検索します。
+        ///   The process was canceled because the storage location does not exist. に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string String_Save_location_does_not_exist {
             get {

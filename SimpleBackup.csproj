@@ -119,6 +119,7 @@
     <Compile Include="Converters\BooleanToEnumConverter.cs" />
     <Compile Include="Converters\EnumDescriptionTypeConverter.cs" />
     <Compile Include="Converters\IndexConverter.cs" />
+    <Compile Include="Converters\LengthToGigaByteConverter.cs" />
     <Compile Include="Converters\ReverseBooleanConverter.cs" />
     <Compile Include="CultureAwareBinding.cs" />
     <Compile Include="FileSystemList.cs" />

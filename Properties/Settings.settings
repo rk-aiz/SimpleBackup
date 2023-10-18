@@ -29,5 +29,11 @@
     <Setting Name="TaskTrayMode" Roaming="true" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
+    <Setting Name="ThreatholdLength" Roaming="true" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">8589934592</Value>
+    </Setting>
+    <Setting Name="TargetSizeValidation" Roaming="true" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

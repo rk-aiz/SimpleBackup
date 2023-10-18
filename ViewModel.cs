@@ -17,6 +17,7 @@ using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using static System.Windows.Forms.AxHost;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace SimpleBackup
 {
@@ -27,8 +28,13 @@ namespace SimpleBackup
     {
         private readonly static ViewModel _instance = new ViewModel();
         public static ViewModel Instance { get { return _instance; } }
-
         public Dispatcher Dispatcher { get; private set; } = Dispatcher.CurrentDispatcher;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         private ViewModel()
         {
@@ -37,12 +43,6 @@ namespace SimpleBackup
             MeasureBackupTargetDir();
             UpdateDestinationDirveInfo();
             LoadBackupHistory();
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         //定期バックアップの有効/無効
@@ -63,27 +63,7 @@ namespace SimpleBackup
                     BackupScheduler?.StopTimer();
                     StatusHelper.RequestUnlockSetting();
                 }
-
                 OnPropertyChanged("SchedulerEnabled");
-            }
-        }
-
-        public async void SetupBackupScheduler()
-        {
-            var targetList = await CBTSource.GetCheckedItemsAsync();
-
-            if (validateTargetLength(targetList.TotalLength))
-            {
-                BackupScheduler = new BackupScheduler(
-                    BackupTargetDir,
-                    SaveDir,
-                    BackupInterval
-                );
-            }
-            else
-            {
-                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_Task_Canceled"));
-                SchedulerEnabled = false;
             }
         }
 
@@ -261,6 +241,41 @@ namespace SimpleBackup
             await task;
         }
 
+        public async void SetupBackupScheduler()
+        {
+            //バックアップ対象が存在しない場合中止
+            if (String.IsNullOrWhiteSpace(BackupTargetDir) || Directory.Exists(BackupTargetDir) == false)
+            {
+                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_target_does_not_exist"));
+                SchedulerEnabled = false;
+                return;
+            }
+
+            //バックアップ保存場所が存在しない場合中止
+            if (String.IsNullOrWhiteSpace(SaveDir) || Directory.Exists(SaveDir) == false)
+            {
+                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Save_Location_does_not_exist"));
+                SchedulerEnabled = false;
+                return;
+            }
+
+            var targetList = await CBTSource.GetCheckedItemsAsync();
+
+            if (targetList != null && ValidateTargetLength(targetList.TotalLength))
+            {
+                BackupScheduler = new BackupScheduler(
+                    BackupTargetDir,
+                    SaveDir,
+                    BackupInterval
+                );
+            }
+            else
+            {
+                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_Task_Canceled"));
+                SchedulerEnabled = false;
+            }
+        }
+
         private void UpdateDestinationDirveInfo()
         {
             try
@@ -275,52 +290,6 @@ namespace SimpleBackup
             {
                 Debug.WriteLine(ex);
             }
-        }
-
-        private async void BackupTask_Completed(object sender, BackupCompletedEvent e)
-        {
-            if (e.BackupTask.Status == BackupTaskStatus.Failed)
-            {
-                e.BackupTask.Index = -1;
-                return;
-            }
-
-            if (e.BackupTask.SaveDir != SaveDir) { return; }
-
-            var li = ArrayList.Synchronized(new ArrayList(BackupHistory.Count));
-            //シークエンス中のバックアップ履歴のIndexをインクリメント
-            //Indexが最大バックアップ保存件数以上の場合Remove
-            await Task.Run(() =>
-            {
-                //ループ中にBackupHistory.Countが変わらないようにロック
-                lock (_backupHistoryLockObj)
-                {
-                    Parallel.ForEach(BackupHistory, entry =>
-                    {
-                        if (entry.InSequence == true &&
-                            entry.Status == BackupTaskStatus.Completed)
-                        {
-                            entry.Index++;
-                        }
-
-                        if (entry.InSequence == true && entry.Index >= MaxBackups)
-                        {
-                            li.Add(entry);
-                        }
-                    });
-                }
-            });
-
-            await Dispatcher.InvokeAsync(() =>
-            {
-                foreach (BackupTask entry in li)
-                {
-                    RemoveBackup(entry);
-                }
-            }, DispatcherPriority.DataBind);
-
-            SaveBackupHistory();
-            UpdateDestinationDirveInfo();
         }
 
         public void CreateBackupTask()
@@ -344,7 +313,9 @@ namespace SimpleBackup
                 return;
             }
 
-            var saveName = $"{Path.GetFileName(sourcePath)}-{DateTime.Now:yyyyMMdd-HH-mm-ss}.zip";
+            var di = new DirectoryInfo(sourcePath);
+            var name = di.Name.Trim(Path.VolumeSeparatorChar, Path.DirectorySeparatorChar);
+            var saveName = $"{name}-{DateTime.Now:yyyyMMdd-HH-mm-ss}.zip";
             var savePath = System.IO.Path.Combine(saveDir, saveName);
 
             //同名バックアップファイルが既に存在する場合中止
@@ -376,10 +347,13 @@ namespace SimpleBackup
             //バックアップ項目をリストアップ
             bt.TargetList = await CBTSource.GetCheckedItemsAsync();
 
-            bool validation;
+            bool validation = false;
             if (!force)
             {
-                validation = validateTargetLength(bt.TargetList.TotalLength);
+                if (bt.TargetList != null)
+                {
+                    validation = ValidateTargetLength(bt.TargetList.TotalLength);
+                }
             }
             else
             {
@@ -394,15 +368,35 @@ namespace SimpleBackup
             }
             else
             {
-                StatusHelper.RequestUnlockSetting();
-                StatusHelper.UpdateStatus(LocalizeHelper.GetString("String_Backup_Task_Canceled"));
+                bt.RequestCancel();
             }
         }
 
-        private long _threatholdLength = 8589934592;
-        private bool validateTargetLength(long length)
+        public float ThreatholdLength
         {
-            if (length > _threatholdLength)
+            get { return (float)Settings.Default.ThreatholdLength; ; }
+            set { Settings.Default.ThreatholdLength = (double)value; OnPropertyChanged(nameof(ThreatholdLength)); }
+        }
+
+        public bool TargetSizeValidation
+        {
+            get { return Settings.Default.TargetSizeValidation; }
+            set { Settings.Default.TargetSizeValidation = value; OnPropertyChanged(nameof(TargetSizeValidation)); }
+        }
+        
+        private bool ValidateTargetLength(long length)
+        {
+            if (length > _destinationDriveAvailableFreeSpace)
+            {
+                string message = LocalizeHelper.GetString("String_Free_Space_Check") + "\n";
+                message += $"{LocalizeHelper.GetString("String_Target_Size")} : {LengthToByteStringConverter.LengthToByteString(length)}";
+                string caption = LocalizeHelper.GetString("Confirm"); ;
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                MessageBox.Show(message, caption, buttons);
+
+                return false;
+            }
+            else if (TargetSizeValidation && length > ThreatholdLength)
             {
                 // Initializes the variables to pass to the MessageBox.Show method.
                 string message = LocalizeHelper.GetString("String_Target_Size_Very_Large") + "\n";
@@ -558,6 +552,52 @@ namespace SimpleBackup
             Dispatcher.DoEvents(DispatcherPriority.Render);
 
             CBTSource.SetIgnoreItems(ignoreItems);
+        }
+
+        private async void BackupTask_Completed(object sender, BackupCompletedEvent e)
+        {
+            if (e.BackupTask.Status == BackupTaskStatus.Failed)
+            {
+                e.BackupTask.Index = -1;
+                return;
+            }
+
+            if (e.BackupTask.SaveDir != SaveDir) { return; }
+
+            var li = ArrayList.Synchronized(new ArrayList(BackupHistory.Count));
+            //シークエンス中のバックアップ履歴のIndexをインクリメント
+            //Indexが最大バックアップ保存件数以上の場合Remove
+            await Task.Run(() =>
+            {
+                //ループ中にBackupHistory.Countが変わらないようにロック
+                lock (_backupHistoryLockObj)
+                {
+                    Parallel.ForEach(BackupHistory, entry =>
+                    {
+                        if (entry.InSequence == true &&
+                            entry.Status == BackupTaskStatus.Completed)
+                        {
+                            entry.Index++;
+                        }
+
+                        if (entry.InSequence == true && entry.Index >= MaxBackups)
+                        {
+                            li.Add(entry);
+                        }
+                    });
+                }
+            });
+
+            await Dispatcher.InvokeAsync(() =>
+            {
+                foreach (BackupTask entry in li)
+                {
+                    RemoveBackup(entry);
+                }
+            }, DispatcherPriority.DataBind);
+
+            SaveBackupHistory();
+            UpdateDestinationDirveInfo();
         }
     }
 }

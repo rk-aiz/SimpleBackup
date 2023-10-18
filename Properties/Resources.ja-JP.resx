@@ -147,11 +147,17 @@
   <data name="String_Backup_process_in_progress" xml:space="preserve">
     <value>バックアップ処理中</value>
   </data>
+  <data name="String_Backup_Settings" xml:space="preserve">
+    <value>バックアップ設定</value>
+  </data>
   <data name="String_Backup_Source" xml:space="preserve">
     <value>バックアップ対象</value>
   </data>
   <data name="String_Backup_target_does_not_exist" xml:space="preserve">
     <value>バックアップ対象が存在しないため、処理がキャンセルされました。</value>
+  </data>
+  <data name="String_Backup_Target_Size_Confirm" xml:space="preserve">
+    <value>バックアップ対象が非常に大きい場合に確認</value>
   </data>
   <data name="String_Backup_Task_Canceled" xml:space="preserve">
     <value>バックアップ処理はキャンセルされました。</value>
@@ -186,6 +192,9 @@
   <data name="String_Free_Space" xml:space="preserve">
     <value>空き容量</value>
   </data>
+  <data name="String_Free_Space_Check" xml:space="preserve">
+    <value>バックアップ対象のサイズが保存先ドライブの空き容量を上回っています。</value>
+  </data>
   <data name="String_Highest" xml:space="preserve">
     <value>最高</value>
   </data>
@@ -218,6 +227,9 @@
   </data>
   <data name="String_Positive_Integer_Only" xml:space="preserve">
     <value>正の整数を入力</value>
+  </data>
+  <data name="String_Positive_Number_Only" xml:space="preserve">
+    <value>正の数値を入力してください</value>
   </data>
   <data name="String_Processing" xml:space="preserve">
     <value>処理中</value>
