@@ -492,7 +492,7 @@ namespace SimpleBackup
         /// <summary>
         /// Jsonファイルにバックアップ履歴とファイル別設定を書き込みます
         /// </summary>
-        public async void SaveBackupHistory()
+        public async void SaveBackupHistory(bool wait = false)
         {
             if (string.IsNullOrWhiteSpace(SaveDir)) { return; }
 
@@ -514,7 +514,14 @@ namespace SimpleBackup
             //foreach (var item in jsObj.IgnoreItems) { Debug.WriteLine(item); }
             if (serializeFlag)
             {
-                await jsObj.SerializeToFileAsync(SaveDir);
+                if (wait)
+                {
+                    jsObj.SerializeToFileAsync(SaveDir).Wait();
+                }
+                else
+                {
+                    await jsObj.SerializeToFileAsync(SaveDir);
+                }
             }
         }
 

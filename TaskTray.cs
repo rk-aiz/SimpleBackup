@@ -13,7 +13,7 @@ namespace SimpleBackup
     /// <summary>
     /// タスクトレイアイコンForm
     /// </summary>
-    internal class TaskTray : Form, INotifyPropertyChanged
+    internal class TaskTray : INotifyPropertyChanged
     {
         public static TaskTray Instance { get; } = new TaskTray();
 
@@ -110,14 +110,13 @@ namespace SimpleBackup
         /// 終了処理
         /// FormのClose()を隠すためnew
         /// </summary>
-        new public void Close()
+        public void Close()
         {
             if (null != _notifyIcon)
             {
                 _notifyIcon.Visible = false;
                 _notifyIcon.Dispose();
             }
-            base.Close();
             System.Windows.Forms.Application.ExitThread();
         }
     }

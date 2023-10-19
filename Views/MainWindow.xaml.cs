@@ -45,7 +45,7 @@ namespace SimpleBackup.Views
 
             Closing += (s, e) =>
             {
-                _vm.SaveBackupHistory();
+                _vm.SaveBackupHistory(true);
 
                 //タスクトレイ常駐モードの場合、CloseをキャンセルしてHide
                 if (TaskTray.Instance.TaskTrayMode != TaskTrayMode.ShowWindowOnly)
